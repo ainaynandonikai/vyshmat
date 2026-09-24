@@ -1,0 +1,646 @@
+<title>Произведения векторов</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+  /* Светлая тема - тетрадь в клетку, тёмная - школьная доска */
+  :root{
+    --paper:#F5F6F1; --grid:rgba(47,85,212,.085); --card:#FFFFFF; --card2:#F0F2F7;
+    --ink:#1C2333; --muted:#566078; --faint:#8790A4; --line:#D8DDE6; --line2:#C3CAD8;
+    --accent:#2F55D4; --accent-ink:#FFFFFF; --accent-soft:rgba(47,85,212,.10);
+    --margin:#D2455A; --margin-soft:rgba(210,69,90,.09); --hl:rgba(255,208,0,.38);
+    --ok:#23804F; --ok-soft:rgba(35,128,79,.11); --bad:#C4344A; --bad-soft:rgba(196,52,74,.09); --warn:#A86A12;
+    --display:"Unbounded","Golos Text",system-ui,sans-serif;
+    --body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --paper:#17201C; --grid:rgba(230,236,228,.045); --card:#1E2924; --card2:#24312B;
+      --ink:#E5EBE3; --muted:#A6B2A9; --faint:#7A877E; --line:#2F3C35; --line2:#3E4D45;
+      --accent:#8FB1FF; --accent-ink:#10182A; --accent-soft:rgba(143,177,255,.14);
+      --margin:#FF8898; --margin-soft:rgba(255,136,152,.12); --hl:rgba(255,214,64,.22);
+      --ok:#6FD29C; --ok-soft:rgba(111,210,156,.13); --bad:#FF8898; --bad-soft:rgba(255,136,152,.12); --warn:#E7B65B;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --paper:#17201C; --grid:rgba(230,236,228,.045); --card:#1E2924; --card2:#24312B;
+    --ink:#E5EBE3; --muted:#A6B2A9; --faint:#7A877E; --line:#2F3C35; --line2:#3E4D45;
+    --accent:#8FB1FF; --accent-ink:#10182A; --accent-soft:rgba(143,177,255,.14);
+    --margin:#FF8898; --margin-soft:rgba(255,136,152,.12); --hl:rgba(255,214,64,.22);
+    --ok:#6FD29C; --ok-soft:rgba(111,210,156,.13); --bad:#FF8898; --bad-soft:rgba(255,136,152,.12); --warn:#E7B65B;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--body);font-size:16px;line-height:1.6;color:var(--ink);background-color:var(--paper);
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:24px 24px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:780px;margin:0 auto;padding:0 16px;padding-block:28px 64px;position:relative}
+  @media (min-width:860px){.wrap::before{content:"";position:absolute;top:0;bottom:0;left:-22px;width:2px;background:var(--margin-soft)}}
+
+  /* Шапка */
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--margin)}
+  .author{font-family:var(--mono);font-size:12.5px;color:var(--muted);text-decoration:none;border:1px solid var(--line2);
+    border-radius:999px;padding:4px 11px;background:var(--card)}
+  .author b{color:var(--accent);font-weight:600}
+  .author:hover{border-color:var(--accent)}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,6.4vw,44px);line-height:1.1;letter-spacing:-.01em;
+    margin:16px 0 8px;text-wrap:balance}
+  .sub{color:var(--muted);margin:0;max-width:62ch}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .chip{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--line);background:var(--card);padding:3px 9px;border-radius:6px}
+  .themebtn{font-family:var(--mono);font-size:12.5px;color:var(--ink);background:var(--card);border:1px solid var(--line2);
+    border-radius:8px;padding:6px 11px;cursor:pointer}
+  .themebtn:hover{border-color:var(--accent)}
+
+  /* Вкладки и темы */
+  .tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:4px;overflow-x:auto;margin:22px -16px 0;padding:10px 16px 0;
+    background:var(--paper);border-bottom:1px solid var(--line)}
+  .tabs::-webkit-scrollbar{height:0}
+  .tab{font:600 14px/1 var(--body);color:var(--muted);background:none;border:none;border-bottom:3px solid transparent;
+    padding:10px 12px 11px;cursor:pointer;white-space:nowrap}
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+  .topics{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 4px}
+  .tchip{font:500 13px/1 var(--body);color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 13px;cursor:pointer}
+  .tchip:hover{border-color:var(--line2);color:var(--ink)}
+  .tchip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .panel{margin-top:14px}
+  .sheet{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px 20px;margin-bottom:14px}
+  .sheet>h2{font-family:var(--display);font-weight:500;font-size:20px;margin:0 0 4px;text-wrap:balance}
+  .kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+  h3{font-size:17px;margin:20px 0 6px}
+  p{margin:8px 0}
+  ul,ol{margin:8px 0;padding-left:22px}
+  li{margin:4px 0}
+  mark{background:var(--hl);color:inherit;padding:0 3px;border-radius:3px}
+  code{font-family:var(--mono);font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+  pre{font-family:var(--mono);font-size:14px;line-height:1.5;background:var(--card2);border:1px solid var(--line);border-radius:8px;
+    padding:12px 14px;overflow-x:auto;margin:10px 0}
+  .callout{border-left:3px solid var(--margin);background:var(--margin-soft);border-radius:0 8px 8px 0;padding:10px 14px;margin:14px 0}
+  .tablebox{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:10px 0}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+
+  /* Тесты */
+  .controls{display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+  .seg button{font:500 13px/1 var(--body);color:var(--muted);background:var(--card);border:none;padding:8px 12px;cursor:pointer}
+  .seg button+button{border-left:1px solid var(--line2)}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+  .ctl-label{font-family:var(--mono);font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-right:6px}
+  .q{border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px;background:var(--card)}
+  .q.is-ok{border-color:var(--ok);background:var(--ok-soft)}
+  .q.is-bad{border-color:var(--bad);background:var(--bad-soft)}
+  .qhead{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .tag{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:5px;border:1px solid var(--line2);color:var(--muted)}
+  .lvl-easy{color:var(--ok);border-color:var(--ok)} .lvl-med{color:var(--warn);border-color:var(--warn)} .lvl-hard{color:var(--bad);border-color:var(--bad)}
+  .qtext{font-weight:600;margin:0 0 10px}
+  .opts{display:grid;gap:7px}
+  .opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;background:var(--paper)}
+  .opt:hover{border-color:var(--line2)}
+  .opt input{margin-top:4px;accent-color:var(--accent)}
+  .opt.o-ok{border-color:var(--ok);background:var(--ok-soft)}
+  .opt.o-bad{border-color:var(--bad);background:var(--bad-soft)}
+  .q input[type=text]{width:100%;font:16px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:10px 12px}
+  .mrow{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;margin:7px 0}
+  .mrow .ml{flex:1 1 160px;font-weight:500}
+  .mrow select{flex:1 1 180px;max-width:100%;font:15px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:8px 10px}
+  .mrow select.s-ok{border-color:var(--ok)} .mrow select.s-bad{border-color:var(--bad)}
+  .explain{margin-top:10px;padding:10px 12px;border:1px dashed var(--line2);border-radius:8px;color:var(--muted);font-size:15px}
+  .btn{font:600 14px/1 var(--body);color:var(--accent-ink);background:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:10px 16px;cursor:pointer}
+  .btn.ghost{color:var(--ink);background:var(--card);border-color:var(--line2)}
+  .btn.small{padding:8px 12px;font-size:13px}
+  .q .btn{margin-top:12px}
+  .testbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+  .score{margin-left:auto;font-family:var(--mono);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .score b{color:var(--accent);font-size:17px}
+  .bar{height:6px;border-radius:99px;background:var(--card2);overflow:hidden;margin:12px 0 4px}
+  .bar>div{height:100%;width:0;background:var(--accent);transition:width .4s}
+  .empty{color:var(--faint);text-align:center;padding:18px;font-family:var(--mono);font-size:13px}
+
+  /* Карточки */
+  .deckmeta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin-bottom:10px}
+  .deckmeta b{color:var(--ok)}
+  .deck{position:relative;height:250px;perspective:1200px}
+  .fc{position:absolute;inset:0;cursor:pointer;border:none;background:none;padding:0;font:inherit;color:inherit;width:100%}
+  .fc .inner{position:relative;width:100%;height:100%;transition:transform .5s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d}
+  .fc.flipped .inner{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:26px;border-radius:10px;border:1px solid var(--line2);background:var(--card)}
+  .face.front{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+  .face.front .t{font-family:var(--display);font-weight:500;font-size:clamp(18px,4.6vw,23px);line-height:1.25}
+  .face.back{transform:rotateY(180deg);border-color:var(--accent);background:var(--card2)}
+  .face.back .t{font-size:16px}
+  .face .hint{position:absolute;bottom:12px;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.06em}
+  .learned-tag{position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:11px;color:var(--ok);border:1px solid var(--ok);border-radius:5px;padding:1px 6px}
+  .deckbar{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .nav{width:42px;height:42px;border-radius:50%;border:1px solid var(--line2);background:var(--card);color:var(--ink);font-size:18px;cursor:pointer}
+  .counter{font-family:var(--mono);font-size:14px;color:var(--muted);min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+
+  /* Определения */
+  .terms{display:grid;gap:8px;margin:10px 0 4px}
+  .term{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--paper)}
+  .term b{color:var(--accent)}
+  details{border:1px solid var(--line);border-radius:8px;margin:8px 0;background:var(--paper)}
+  summary{cursor:pointer;padding:12px 14px;font-weight:600;list-style:none;display:flex;gap:10px}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"+";font-family:var(--mono);color:var(--margin);font-weight:700}
+  details[open] summary::before{content:"−"}
+  details .ans{padding:0 14px 12px 34px;color:var(--muted)}
+
+  .cheat li{margin:7px 0}
+  footer{margin-top:34px;padding-top:14px;border-top:1px solid var(--line);text-align:center;font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+  footer a{color:var(--accent);text-decoration:none}
+
+  @media (prefers-reduced-motion: reduce){.fc .inner,.bar>div{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="top">
+      <span class="eyebrow" id="eyebrow">тренажёр к паре</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <a class="author" id="author" href="#" target="_blank" rel="noopener">автор <b></b></a>
+        <button class="themebtn" id="themeBtn" type="button">Тема</button>
+      </div>
+    </div>
+    <h1 id="pageTitle"></h1>
+    <p class="sub" id="pageSub"></p>
+    <div class="meta" id="pageMeta"></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="konspekt" type="button">Конспект</button>
+    <button class="tab" role="tab" data-tab="tests" type="button">Тесты</button>
+    <button class="tab" role="tab" data-tab="cards" type="button">Карточки</button>
+    <button class="tab" role="tab" data-tab="oral" type="button">Определения</button>
+    <button class="tab" role="tab" data-tab="cheat" type="button">Шпаргалка</button>
+  </nav>
+  <div class="topics" id="topics"></div>
+
+  <main>
+    <div class="panel" id="p-konspekt"></div>
+    <div class="panel" id="p-tests" hidden>
+      <div class="controls">
+        <span><span class="ctl-label">режим</span><span class="seg" id="modeSeg"></span></span>
+        <span><span class="ctl-label">сложность</span><span class="seg" id="levelSeg"></span></span>
+      </div>
+      <div id="qlist"></div>
+      <div class="bar"><div id="bar"></div></div>
+      <div class="testbar">
+        <button class="btn" id="checkAll" type="button">Проверить всё</button>
+        <button class="btn ghost" id="resetAll" type="button">Заново</button>
+        <span class="score" id="score"></span>
+      </div>
+    </div>
+    <div class="panel" id="p-cards" hidden>
+      <div class="deckmeta"><span>Нажми на карточку, чтобы перевернуть.</span><span id="learned"></span></div>
+      <div class="deck" id="deck"></div>
+      <div class="deckbar">
+        <button class="nav" id="prev" type="button" aria-label="Предыдущая">‹</button>
+        <button class="btn ghost small" id="again" type="button">Повторить</button>
+        <span class="counter" id="counter"></span>
+        <button class="btn small" id="know" type="button">Знаю</button>
+        <button class="nav" id="next" type="button" aria-label="Следующая">›</button>
+      </div>
+      <div style="text-align:center;margin-top:10px"><button class="btn ghost small" id="shuffle" type="button">Перемешать</button></div>
+    </div>
+    <div class="panel" id="p-oral" hidden></div>
+    <div class="panel" id="p-cheat" hidden></div>
+  </main>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* ===== ПОДПИСЬ (не менять) ===== */
+const AUTHOR = { nick: "@ainaynandonikai", url: "https://github.com/ainaynandonikai" };
+
+/* ===== ДАННЫЕ - меняется только этот объект ===== */
+const DATA = {
+  title: "Произведения векторов",
+  subtitle: "Скалярное, векторное и смешанное произведение: что каждое считает, как его найти и где встречается в типовом расчёте.",
+  meta: ["Высшая математика", "Лекция 4", "3 темы", "примеры из ТР №1"],
+  topics: [
+    {
+      id: "scal", name: "Скалярное",
+      konspekt: `
+        <p>Три произведения отвечают на три разных вопроса: <b>длины и углы</b> - скалярное, <b>площади</b> - векторное, <b>объёмы</b> - смешанное.</p>
+        <h3>Аналогия: тень от палки</h3>
+        <p>Вектор <code>b</code> - фонарик, светящий строго вниз, вектор <code>a</code> - палка под углом. Скалярное произведение - длина тени палки на направление <code>b</code>. Палка вдоль луча - тень максимальная. Палка поперёк луча - <mark>тени нет, произведение равно 0</mark>.</p>
+        <h3>Формулы</h3>
+        <pre>a·b = a₁b₁ + a₂b₂ + … + aₙbₙ     (результат - число)
+|a| = √(a·a)                    (норма, длина вектора)
+cos φ = (a·b) / (|a|·|b|)       (угол между векторами)</pre>
+        <div class="callout"><b>Главное:</b> a ⊥ b тогда и только тогда, когда a·b = 0. Это самый частый тип задач.</div>
+        <h3>Пример</h3>
+        <p>При каком x векторы a = (2, 3, x) и b = (x, −1, 5) ортогональны?</p>
+        <pre>a·b = 2x − 3 + 5x = 0  →  7x = 3  →  x = 3/7</pre>`,
+      terms: [
+        { term: "Скалярное произведение", def: "сумма попарных произведений координат: a·b = a₁b₁ + … + aₙbₙ. Результат - число." },
+        { term: "Норма вектора", def: "длина вектора: |a| = √(a·a)." },
+        { term: "Ортогональность", def: "перпендикулярность векторов; признак - a·b = 0." }
+      ],
+      cards: [
+        { front: "a·b - что на выходе?", back: "Число: a₁b₁ + a₂b₂ + … + aₙbₙ." },
+        { front: "Длина (норма) вектора", back: "|a| = √(a·a)." },
+        { front: "Косинус угла между векторами", back: "cos φ = (a·b) / (|a|·|b|)." },
+        { front: "Признак перпендикулярности", back: "a ⊥ b  ⟺  a·b = 0 - «тени нет»." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Что получается в результате скалярного произведения?",
+          options: [{ t: "Число", correct: true }, { t: "Вектор", correct: false }, { t: "Матрица", correct: false }, { t: "Площадь параллелограмма", correct: false }],
+          explain: "Скалярное произведение - сумма произведений координат, то есть число." },
+        { type: "truefalse", level: "easy", q: "Если a·b = 0, то векторы a и b перпендикулярны.", answer: true,
+          explain: "Да: нулевое скалярное произведение - признак ортогональности." },
+        { type: "single", level: "med", q: "Как найти косинус угла между векторами a и b?",
+          options: [{ t: "(a·b) / (|a|·|b|)", correct: true }, { t: "(|a|·|b|) / (a·b)", correct: false }, { t: "|a×b| / (|a|·|b|)", correct: false }, { t: "a·b·|a|", correct: false }],
+          explain: "cos φ = (a·b) / (|a|·|b|)." },
+        { type: "truefalse", level: "med", q: "Длина вектора равна a·a.", answer: false,
+          explain: "Длина - корень: |a| = √(a·a)." },
+        { type: "fill", level: "hard", q: "При каком x векторы a = (2, 3, x) и b = (x, −1, 5) ортогональны? x = ___",
+          answers: ["3/7"], explain: "a·b = 2x − 3 + 5x = 7x − 3 = 0, отсюда x = 3/7." }
+      ],
+      oral: [
+        { q: "Дайте определение скалярного произведения.", a: "Скалярное произведение векторов a и b - число, равное сумме попарных произведений их координат: a·b = a₁b₁ + a₂b₂ + … + aₙbₙ." },
+        { q: "Что значит геометрически, что скалярное произведение равно нулю?", a: "Векторы перпендикулярны (ортогональны): проекция одного на другой - «тень» - равна нулю." }
+      ],
+      cheat: [
+        "<b>a·b</b> = a₁b₁ + … + aₙbₙ - число.",
+        "<b>|a|</b> = √(a·a); <b>cos φ</b> = (a·b) / (|a|·|b|).",
+        "<b>a ⊥ b</b> ⟺ a·b = 0."
+      ]
+    },
+    {
+      id: "vect", name: "Векторное",
+      konspekt: `
+        <h3>Аналогия: дверь</h3>
+        <p>Одна сторона двери - вектор <code>a</code>, направление, куда её открывают, - вектор <code>b</code>. Векторное произведение <code>a×b</code> торчит <mark>перпендикулярно плоскости двери</mark>, как ручка. Его длина - площадь параллелограмма на <code>a</code> и <code>b</code>. Куда торчит ручка, решает правило правой руки.</p>
+        <h3>Определение (только в 3D, результат - вектор)</h3>
+        <ol><li>c ⊥ a и c ⊥ b;</li><li>|c| = площадь параллелограмма на a и b;</li><li>a, b, c - правая тройка.</li></ol>
+        <h3>Как считать</h3>
+        <pre>        | i   j   k  |
+a × b = | a₁  a₂  a₃ |
+        | b₁  b₂  b₃ |</pre>
+        <div class="callout"><b>Площадь треугольника:</b> S△ABC = |AB × AC| / 2.</div>
+        <h3>Пример</h3>
+        <p>A(5, −1, 2), B(3, −4, −2), C(−2, 3, 5).</p>
+        <pre>AB = (−2, −3, −4),  AC = (−7, 4, 3)
+AB × AC = (7, 34, −29)
+|AB × AC| = √(7² + 34² + 29²) = √2046
+S△ = √2046 / 2</pre>`,
+      terms: [
+        { term: "Векторное произведение", def: "вектор c = a×b: перпендикулярен a и b, длина равна площади параллелограмма на a и b, тройка a, b, c правая. Только для 3D." },
+        { term: "Правая тройка", def: "тройка векторов, направление третьего из которых задаётся правилом правой руки." }
+      ],
+      cards: [
+        { front: "a×b - что на выходе?", back: "Вектор, перпендикулярный a и b. Определено только в 3D." },
+        { front: "Длина a×b", back: "Площадь параллелограмма, построенного на a и b." },
+        { front: "Как посчитать a×b", back: "Определитель 3×3: первая строка i, j, k, дальше координаты a и b." },
+        { front: "Площадь треугольника ABC", back: "S = |AB × AC| / 2." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Что получается в результате векторного произведения?",
+          options: [{ t: "Вектор", correct: true }, { t: "Число", correct: false }, { t: "Объём", correct: false }, { t: "Угол", correct: false }],
+          explain: "a×b - вектор, перпендикулярный обоим множителям." },
+        { type: "multiple", level: "med", q: "Какие свойства верны для c = a×b?",
+          options: [{ t: "c ⊥ a", correct: true }, { t: "c ⊥ b", correct: true }, { t: "|c| равна площади параллелограмма на a и b", correct: true }, { t: "|c| равна объёму параллелепипеда", correct: false }, { t: "a, b, c - левая тройка", correct: false }],
+          explain: "Три свойства: c ⊥ a, c ⊥ b, |c| = площадь параллелограмма, тройка правая." },
+        { type: "truefalse", level: "med", q: "Векторное произведение определено для векторов любой размерности.", answer: false,
+          explain: "Нет, только для трёхмерных векторов." },
+        { type: "single", level: "med", q: "Как найти площадь треугольника ABC по координатам?",
+          options: [{ t: "|AB × AC| / 2", correct: true }, { t: "|AB × AC|", correct: false }, { t: "|AB · AC| / 2", correct: false }, { t: "(1/6)·|AB AC AD|", correct: false }],
+          explain: "Модуль векторного произведения - площадь параллелограмма, треугольник - его половина." },
+        { type: "fill", level: "hard", q: "AB = (−2, −3, −4), AC = (−7, 4, 3). Первая координата AB × AC равна ___",
+          answers: ["7"], explain: "i: (−3)·3 − (−4)·4 = −9 + 16 = 7. Весь вектор: (7, 34, −29)." }
+      ],
+      oral: [
+        { q: "Дайте определение векторного произведения.", a: "Векторное произведение a×b трёхмерных векторов - вектор c, который перпендикулярен a и b, имеет длину, равную площади параллелограмма на a и b, и образует с ними правую тройку." },
+        { q: "Как найти площадь треугольника по координатам вершин?", a: "Найти векторы AB и AC, посчитать AB × AC определителем с i, j, k в первой строке, взять модуль и разделить на 2." }
+      ],
+      cheat: [
+        "<b>a×b</b> - вектор, только 3D, считается определителем с i, j, k.",
+        "<b>|a×b|</b> = площадь параллелограмма.",
+        "<b>S△</b> = |AB × AC| / 2."
+      ]
+    },
+    {
+      id: "mixed", name: "Смешанное",
+      konspekt: `
+        <h3>Аналогия: коробка</h3>
+        <p>Три вектора выходят из одного угла комнаты вдоль трёх рёбер коробки. Смешанное произведение - объём этой коробки (параллелепипеда). Если рёбра легли в одну плоскость, коробка сплющилась в лист: <mark>объём 0, векторы компланарны</mark>.</p>
+        <h3>Формулы</h3>
+        <pre>abc = (a×b)·c
+
+      | a₁  a₂  a₃ |
+abc = | b₁  b₂  b₃ |      (координаты векторов построчно)
+      | c₁  c₂  c₃ |</pre>
+        <ul>
+          <li><b>abc = 0</b> ⟺ a, b, c компланарны (лежат в одной плоскости);</li>
+          <li><b>V параллелепипеда</b> = |abc|;</li>
+          <li><b>V пирамиды</b> = (1/6)·|abc|.</li>
+        </ul>
+        <h3>Пример - объём пирамиды</h3>
+        <p>A(−4, 1, −3), B(2, −5, 1), C(3, 4, 3), D(5, 2, −4).</p>
+        <pre>AB = (6, −6, 4),  AC = (7, 3, 6),  AD = (9, 1, −1)
+AB AC AD = −500
+V = (1/6)·|−500| = 250/3</pre>
+        <h3>Как всё связано</h3>
+        <div class="tablebox"><table>
+          <tr><th>Произведение</th><th>Результат</th><th>Что находит</th></tr>
+          <tr><td>Скалярное</td><td>число</td><td>длины, углы, перпендикулярность</td></tr>
+          <tr><td>Векторное</td><td>вектор, только 3D</td><td>площади, перпендикуляр к плоскости</td></tr>
+          <tr><td>Смешанное</td><td>число, только 3D</td><td>объёмы, компланарность</td></tr>
+        </table></div>
+        <div class="callout"><b>Связь с лекцией 3:</b> компланарность трёх векторов (смешанное = 0) и их линейная зависимость (определитель = 0) - одно и то же явление.</div>`,
+      terms: [
+        { term: "Смешанное произведение", def: "число abc = (a×b)·c; считается определителем 3×3 из координат a, b, c." },
+        { term: "Компланарность", def: "три вектора лежат в одной плоскости; признак - abc = 0." }
+      ],
+      cards: [
+        { front: "abc - как считать?", back: "Определитель 3×3 из координат a, b, c построчно. Результат - число." },
+        { front: "Признак компланарности", back: "abc = 0 - коробка сплющилась в лист." },
+        { front: "Объём параллелепипеда", back: "V = |abc|." },
+        { front: "Объём пирамиды", back: "V = (1/6)·|abc|." },
+        { front: "Лекция 3 ↔ лекция 4", back: "Линейная зависимость трёх векторов и компланарность - одно и то же явление." }
+      ],
+      questions: [
+        { type: "truefalse", level: "easy", q: "Если abc = 0, векторы a, b, c лежат в одной плоскости.", answer: true,
+          explain: "Нулевой объём коробки - векторы компланарны." },
+        { type: "fill", level: "med", q: "Объём пирамиды равен ___ · |abc|.", answers: ["1/6"],
+          explain: "Пирамида на тех же трёх рёбрах - 1/6 параллелепипеда." },
+        { type: "match", level: "med", q: "Сопоставьте произведение и то, что оно находит:",
+          pairs: [{ left: "Скалярное", right: "Углы и перпендикулярность" }, { left: "Векторное", right: "Площади" }, { left: "Смешанное", right: "Объёмы и компланарность" }],
+          explain: "Скалярное - длины и углы, векторное - площади, смешанное - объёмы." },
+        { type: "single", level: "hard", q: "Для пирамиды ABCD получили AB AC AD = −500. Чему равен объём?",
+          options: [{ t: "250/3", correct: true }, { t: "−250/3", correct: false }, { t: "500", correct: false }, { t: "500/3", correct: false }],
+          explain: "V = (1/6)·|−500| = 500/6 = 250/3. Объём берётся по модулю." },
+        { type: "truefalse", level: "hard", q: "Компланарность трёх векторов и их линейная зависимость - одно и то же явление.", answer: true,
+          explain: "Да: в лекции 3 это определитель = 0, в лекции 4 - смешанное произведение = 0." }
+      ],
+      oral: [
+        { q: "Что такое смешанное произведение и как его посчитать?", a: "Смешанное произведение abc = (a×b)·c - число. Считается как определитель 3×3, строки которого - координаты a, b и c." },
+        { q: "Как понять, что три вектора лежат в одной плоскости?", a: "Посчитать смешанное произведение: если abc = 0, векторы компланарны." },
+        { q: "Как связаны лекции 3 и 4?", a: "Компланарность трёх векторов (смешанное = 0) и их линейная зависимость (определитель = 0) - одно и то же явление, просто в разных формулировках." }
+      ],
+      cheat: [
+        "<b>abc</b> = (a×b)·c = определитель из координат a, b, c.",
+        "<b>abc = 0</b> ⟺ компланарны.",
+        "<b>V пар.</b> = |abc|, <b>V пир.</b> = (1/6)·|abc|.",
+        "Скалярное - углы, векторное - площади, смешанное - объёмы."
+      ]
+    }
+  ]
+};
+
+/* ===== ДВИЖОК (не менять) ===== */
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const make = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const KEY = "trenazher:" + DATA.title;
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const norm = (s) => String(s).toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").replace(/[.,;!]+$/, "").trim();
+  const TYPE = { single: "один ответ", multiple: "несколько", truefalse: "верно / неверно", fill: "вписать", match: "сопоставить" };
+  const LEVEL = { easy: "лёгкий", med: "средний", hard: "сложный" };
+
+  /* Шапка и подпись */
+  document.title = DATA.title;
+  $("#pageTitle").textContent = DATA.title;
+  $("#pageSub").textContent = DATA.subtitle || "";
+  (DATA.meta || []).forEach((m) => $("#pageMeta").appendChild(make("span", "chip", esc(m))));
+  const au = $("#author"); au.href = AUTHOR.url; au.querySelector("b").textContent = AUTHOR.nick;
+  $("#footer").innerHTML = 'Тренажёр собрал <a href="' + esc(AUTHOR.url) + '" target="_blank" rel="noopener">' + esc(AUTHOR.nick) + "</a>";
+
+  /* Тема */
+  const root = document.documentElement;
+  const dark = () => root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const savedTheme = store.get(KEY + ":theme", null);
+  if (savedTheme) root.dataset.theme = savedTheme;
+  const themeLabel = () => { $("#themeBtn").textContent = dark() ? "Светлая тема" : "Тёмная тема"; };
+  $("#themeBtn").onclick = () => { const t = dark() ? "light" : "dark"; root.dataset.theme = t; store.set(KEY + ":theme", t); themeLabel(); };
+  themeLabel();
+
+  /* Фильтр тем */
+  let topic = "all";
+  const sel = () => topic === "all" ? DATA.topics : DATA.topics.filter((t) => t.id === topic);
+  function renderTopics() {
+    const box = $("#topics"); box.innerHTML = "";
+    if (DATA.topics.length < 2) return;
+    [{ id: "all", name: "Все темы" }].concat(DATA.topics).forEach((t) => {
+      const b = make("button", "tchip", esc(t.name)); b.type = "button";
+      b.setAttribute("aria-pressed", String(t.id === topic));
+      b.onclick = () => { topic = t.id; renderAll(); };
+      box.appendChild(b);
+    });
+  }
+
+  /* Конспект */
+  function renderKonspekt() {
+    const p = $("#p-konspekt"); p.innerHTML = "";
+    sel().forEach((t) => {
+      const s = make("section", "sheet");
+      s.appendChild(make("span", "kicker", "тема"));
+      s.appendChild(make("h2", null, esc(t.name)));
+      s.appendChild(make("div", null, t.konspekt || ""));
+      p.appendChild(s);
+    });
+  }
+
+  /* Тесты */
+  let mode = "learn", level = "all", qs = [];
+  function seg(boxId, items, cur, set) {
+    const box = $(boxId); box.innerHTML = "";
+    items.forEach(([v, label]) => {
+      const b = make("button", null, label); b.type = "button";
+      b.setAttribute("aria-pressed", String(v === cur));
+      b.onclick = () => { set(v); renderTests(); };
+      box.appendChild(b);
+    });
+  }
+  function renderTests() {
+    seg("#modeSeg", [["learn", "Учёба"], ["exam", "Экзамен"]], mode, (v) => { mode = v; });
+    seg("#levelSeg", [["all", "Все"], ["easy", "Лёгкие"], ["med", "Средние"], ["hard", "Сложные"]], level, (v) => { level = v; });
+    const list = $("#qlist"); list.innerHTML = "";
+    qs = [];
+    sel().forEach((t) => (t.questions || []).forEach((q) => { if (level === "all" || q.level === level) qs.push(q); }));
+    $("#score").textContent = ""; $("#bar").style.width = "0";
+    if (!qs.length) { list.appendChild(make("div", "empty", "Нет вопросов с таким фильтром")); return; }
+    qs.forEach((q, i) => list.appendChild(renderQ(q, i)));
+  }
+  function renderQ(q, i) {
+    const box = make("div", "q"); box.dataset.i = i;
+    const head = make("div", "qhead");
+    head.appendChild(make("span", "tag", (i + 1) + " · " + TYPE[q.type]));
+    if (q.level) head.appendChild(make("span", "tag lvl-" + q.level, LEVEL[q.level] || q.level));
+    box.appendChild(head);
+    box.appendChild(make("p", "qtext", esc(q.q)));
+    const name = "q" + i;
+    if (q.type === "single" || q.type === "multiple") {
+      const opts = make("div", "opts");
+      shuffle(q.options.map((o, k) => ({ o, k }))).forEach(({ o, k }) => {
+        const l = make("label", "opt"); l.dataset.k = k;
+        const inp = document.createElement("input"); inp.type = q.type === "single" ? "radio" : "checkbox"; inp.name = name; inp.value = k; inp.id = name + "-" + k;
+        l.appendChild(inp); l.appendChild(make("span", null, esc(o.t))); opts.appendChild(l);
+      });
+      box.appendChild(opts);
+    } else if (q.type === "truefalse") {
+      const opts = make("div", "opts");
+      [["true", "Верно"], ["false", "Неверно"]].forEach(([v, t]) => {
+        const l = make("label", "opt"); l.dataset.k = v;
+        const inp = document.createElement("input"); inp.type = "radio"; inp.name = name; inp.value = v; inp.id = name + "-" + v;
+        l.appendChild(inp); l.appendChild(make("span", null, t)); opts.appendChild(l);
+      });
+      box.appendChild(opts);
+    } else if (q.type === "fill") {
+      const inp = document.createElement("input"); inp.type = "text"; inp.id = name + "-fill"; inp.placeholder = "Твой ответ"; inp.autocomplete = "off";
+      inp.onkeydown = (e) => { if (e.key === "Enter") check(box, q); };
+      box.appendChild(inp);
+    } else if (q.type === "match") {
+      const rights = shuffle(q.pairs.map((p) => p.right));
+      q.pairs.forEach((p, k) => {
+        const row = make("div", "mrow");
+        row.appendChild(make("span", "ml", esc(p.left)));
+        const s = document.createElement("select"); s.id = name + "-m" + k;
+        s.appendChild(new Option("выбери…", ""));
+        rights.forEach((r) => s.appendChild(new Option(r, r)));
+        row.appendChild(s); box.appendChild(row);
+      });
+    }
+    const ex = make("div", "explain", "<b>Разбор:</b> " + esc(q.explain || "")); ex.hidden = true; box.appendChild(ex);
+    if (mode === "learn") {
+      const b = make("button", "btn ghost small", "Проверить"); b.type = "button";
+      b.onclick = () => check(box, q); box.appendChild(b);
+    }
+    return box;
+  }
+  function check(box, q) {
+    let ok = false;
+    const labels = [...box.querySelectorAll(".opt")];
+    labels.forEach((l) => l.classList.remove("o-ok", "o-bad"));
+    if (q.type === "single" || q.type === "multiple") {
+      const picked = new Set([...box.querySelectorAll("input:checked")].map((x) => +x.value));
+      const right = new Set(q.options.map((o, k) => o.correct ? k : -1).filter((k) => k >= 0));
+      ok = picked.size === right.size && [...picked].every((k) => right.has(k));
+      labels.forEach((l) => { const k = +l.dataset.k; if (right.has(k)) l.classList.add("o-ok"); else if (picked.has(k)) l.classList.add("o-bad"); });
+    } else if (q.type === "truefalse") {
+      const p = box.querySelector("input:checked");
+      ok = !!p && (p.value === "true") === q.answer;
+      labels.forEach((l) => { const isRight = (l.dataset.k === "true") === q.answer; if (isRight) l.classList.add("o-ok"); else if (p && p.value === l.dataset.k) l.classList.add("o-bad"); });
+    } else if (q.type === "fill") {
+      const v = norm(box.querySelector("input").value);
+      ok = v !== "" && q.answers.some((a) => norm(a) === v);
+    } else if (q.type === "match") {
+      ok = true;
+      box.querySelectorAll("select").forEach((s, k) => { const good = s.value === q.pairs[k].right; s.classList.toggle("s-ok", good); s.classList.toggle("s-bad", !good); if (!good) ok = false; });
+    }
+    box.classList.toggle("is-ok", ok); box.classList.toggle("is-bad", !ok);
+    box.querySelector(".explain").hidden = false;
+    return ok;
+  }
+  $("#checkAll").onclick = () => {
+    if (!qs.length) return;
+    let n = 0;
+    document.querySelectorAll("#qlist .q").forEach((box) => { if (check(box, qs[+box.dataset.i])) n++; });
+    const pct = Math.round(n / qs.length * 100);
+    $("#score").innerHTML = "<b>" + n + " / " + qs.length + "</b> · " + pct + "%";
+    $("#bar").style.width = pct + "%";
+  };
+  $("#resetAll").onclick = () => renderTests();
+
+  /* Карточки */
+  let deck = [], idx = 0;
+  let learned = new Set(store.get(KEY + ":learned", []));
+  function renderCards(reshuffle) {
+    const all = []; sel().forEach((t) => (t.cards || []).forEach((c) => all.push(c)));
+    deck = reshuffle ? shuffle(all) : all; if (idx >= deck.length) idx = 0;
+    drawCard();
+  }
+  function drawCard() {
+    const box = $("#deck"); box.innerHTML = "";
+    const n = deck.filter((c) => learned.has(c.front)).length;
+    $("#learned").innerHTML = deck.length ? "Знаю: <b>" + n + "</b> из " + deck.length : "";
+    if (!deck.length) { box.appendChild(make("div", "empty", "В этой теме нет карточек")); $("#counter").textContent = "0 / 0"; return; }
+    const c = deck[idx];
+    const fc = make("button", "fc"); fc.type = "button"; fc.setAttribute("aria-label", "Перевернуть карточку");
+    const inner = make("div", "inner");
+    const front = make("div", "face front", '<div class="t">' + esc(c.front) + '</div><span class="hint">нажми - ответ</span>');
+    const back = make("div", "face back", '<div class="t">' + esc(c.back) + "</div>");
+    if (learned.has(c.front)) front.appendChild(make("span", "learned-tag", "знаю"));
+    inner.appendChild(front); inner.appendChild(back); fc.appendChild(inner);
+    fc.onclick = () => fc.classList.toggle("flipped");
+    box.appendChild(fc);
+    $("#counter").textContent = (idx + 1) + " / " + deck.length;
+  }
+  const step = (d) => { if (!deck.length) return; idx = (idx + d + deck.length) % deck.length; drawCard(); };
+  const mark = (on) => { if (!deck.length) return; const f = deck[idx].front; on ? learned.add(f) : learned.delete(f); store.set(KEY + ":learned", [...learned]); step(1); };
+  $("#prev").onclick = () => step(-1);
+  $("#next").onclick = () => step(1);
+  $("#know").onclick = () => mark(true);
+  $("#again").onclick = () => mark(false);
+  $("#shuffle").onclick = () => { idx = 0; renderCards(true); };
+
+  /* Определения */
+  function renderOral() {
+    const p = $("#p-oral"); p.innerHTML = "";
+    sel().forEach((t) => {
+      const s = make("section", "sheet");
+      s.appendChild(make("span", "kicker", "тема"));
+      s.appendChild(make("h2", null, esc(t.name)));
+      if ((t.terms || []).length) {
+        const g = make("div", "terms");
+        t.terms.forEach((x) => g.appendChild(make("div", "term", "<b>" + esc(x.term) + "</b> - " + esc(x.def))));
+        s.appendChild(g);
+      }
+      (t.oral || []).forEach((o) => {
+        const d = document.createElement("details");
+        d.appendChild(make("summary", null, esc(o.q)));
+        d.appendChild(make("div", "ans", esc(o.a)));
+        s.appendChild(d);
+      });
+      p.appendChild(s);
+    });
+  }
+
+  /* Шпаргалка */
+  function renderCheat() {
+    const p = $("#p-cheat"); p.innerHTML = "";
+    const s = make("section", "sheet cheat");
+    s.appendChild(make("span", "kicker", "за час до пары"));
+    s.appendChild(make("h2", null, "Шпаргалка"));
+    sel().forEach((t) => {
+      s.appendChild(make("h3", null, esc(t.name)));
+      const ul = make("ul");
+      (t.cheat || []).forEach((c) => ul.appendChild(make("li", null, c)));
+      s.appendChild(ul);
+    });
+    p.appendChild(s);
+  }
+
+  /* Вкладки */
+  const TABS = ["konspekt", "tests", "cards", "oral", "cheat"];
+  function openTab(id) {
+    if (!TABS.includes(id)) id = "konspekt";
+    document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === id)));
+    TABS.forEach((t) => { $("#p-" + t).hidden = t !== id; });
+    store.set(KEY + ":tab", id);
+  }
+  document.querySelectorAll(".tab").forEach((t) => { t.onclick = () => openTab(t.dataset.tab); });
+
+  function renderAll() { renderTopics(); renderKonspekt(); renderTests(); renderCards(false); renderOral(); renderCheat(); }
+  renderAll();
+  openTab((location.hash || "").slice(1) || store.get(KEY + ":tab", "konspekt"));
+})();
+</script>

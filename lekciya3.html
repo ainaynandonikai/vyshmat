@@ -1,0 +1,742 @@
+<title>Векторные пространства</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+  /* Светлая тема - тетрадь в клетку, тёмная - школьная доска */
+  :root{
+    --paper:#F5F6F1; --grid:rgba(47,85,212,.085); --card:#FFFFFF; --card2:#F0F2F7;
+    --ink:#1C2333; --muted:#566078; --faint:#8790A4; --line:#D8DDE6; --line2:#C3CAD8;
+    --accent:#2F55D4; --accent-ink:#FFFFFF; --accent-soft:rgba(47,85,212,.10);
+    --margin:#D2455A; --margin-soft:rgba(210,69,90,.09); --hl:rgba(255,208,0,.38);
+    --ok:#23804F; --ok-soft:rgba(35,128,79,.11); --bad:#C4344A; --bad-soft:rgba(196,52,74,.09); --warn:#A86A12;
+    --display:"Unbounded","Golos Text",system-ui,sans-serif;
+    --body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --paper:#17201C; --grid:rgba(230,236,228,.045); --card:#1E2924; --card2:#24312B;
+      --ink:#E5EBE3; --muted:#A6B2A9; --faint:#7A877E; --line:#2F3C35; --line2:#3E4D45;
+      --accent:#8FB1FF; --accent-ink:#10182A; --accent-soft:rgba(143,177,255,.14);
+      --margin:#FF8898; --margin-soft:rgba(255,136,152,.12); --hl:rgba(255,214,64,.22);
+      --ok:#6FD29C; --ok-soft:rgba(111,210,156,.13); --bad:#FF8898; --bad-soft:rgba(255,136,152,.12); --warn:#E7B65B;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --paper:#17201C; --grid:rgba(230,236,228,.045); --card:#1E2924; --card2:#24312B;
+    --ink:#E5EBE3; --muted:#A6B2A9; --faint:#7A877E; --line:#2F3C35; --line2:#3E4D45;
+    --accent:#8FB1FF; --accent-ink:#10182A; --accent-soft:rgba(143,177,255,.14);
+    --margin:#FF8898; --margin-soft:rgba(255,136,152,.12); --hl:rgba(255,214,64,.22);
+    --ok:#6FD29C; --ok-soft:rgba(111,210,156,.13); --bad:#FF8898; --bad-soft:rgba(255,136,152,.12); --warn:#E7B65B;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--body);font-size:16px;line-height:1.6;color:var(--ink);background-color:var(--paper);
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:24px 24px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:780px;margin:0 auto;padding:0 16px;padding-block:28px 64px;position:relative}
+  @media (min-width:860px){.wrap::before{content:"";position:absolute;top:0;bottom:0;left:-22px;width:2px;background:var(--margin-soft)}}
+
+  /* Шапка */
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--margin)}
+  .author{font-family:var(--mono);font-size:12.5px;color:var(--muted);text-decoration:none;border:1px solid var(--line2);
+    border-radius:999px;padding:4px 11px;background:var(--card)}
+  .author b{color:var(--accent);font-weight:600}
+  .author:hover{border-color:var(--accent)}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,6.4vw,44px);line-height:1.1;letter-spacing:-.01em;
+    margin:16px 0 8px;text-wrap:balance}
+  .sub{color:var(--muted);margin:0;max-width:62ch}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .chip{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--line);background:var(--card);padding:3px 9px;border-radius:6px}
+  .themebtn{font-family:var(--mono);font-size:12.5px;color:var(--ink);background:var(--card);border:1px solid var(--line2);
+    border-radius:8px;padding:6px 11px;cursor:pointer}
+  .themebtn:hover{border-color:var(--accent)}
+
+  /* Вкладки и темы */
+  .tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:4px;overflow-x:auto;margin:22px -16px 0;padding:10px 16px 0;
+    background:var(--paper);border-bottom:1px solid var(--line)}
+  .tabs::-webkit-scrollbar{height:0}
+  .tab{font:600 14px/1 var(--body);color:var(--muted);background:none;border:none;border-bottom:3px solid transparent;
+    padding:10px 12px 11px;cursor:pointer;white-space:nowrap}
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+  .topics{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 4px}
+  .tchip{font:500 13px/1 var(--body);color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 13px;cursor:pointer}
+  .tchip:hover{border-color:var(--line2);color:var(--ink)}
+  .tchip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .panel{margin-top:14px}
+  .sheet{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px 20px;margin-bottom:14px}
+  .sheet>h2{font-family:var(--display);font-weight:500;font-size:20px;margin:0 0 4px;text-wrap:balance}
+  .kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+  h3{font-size:17px;margin:20px 0 6px}
+  p{margin:8px 0}
+  ul,ol{margin:8px 0;padding-left:22px}
+  li{margin:4px 0}
+  mark{background:var(--hl);color:inherit;padding:0 3px;border-radius:3px}
+  code{font-family:var(--mono);font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+  pre{font-family:var(--mono);font-size:14px;line-height:1.5;background:var(--card2);border:1px solid var(--line);border-radius:8px;
+    padding:12px 14px;overflow-x:auto;margin:10px 0}
+  .callout{border-left:3px solid var(--margin);background:var(--margin-soft);border-radius:0 8px 8px 0;padding:10px 14px;margin:14px 0}
+  .tablebox{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:10px 0}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+
+  /* Тесты */
+  .controls{display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+  .seg button{font:500 13px/1 var(--body);color:var(--muted);background:var(--card);border:none;padding:8px 12px;cursor:pointer}
+  .seg button+button{border-left:1px solid var(--line2)}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+  .ctl-label{font-family:var(--mono);font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-right:6px}
+  .q{border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px;background:var(--card)}
+  .q.is-ok{border-color:var(--ok);background:var(--ok-soft)}
+  .q.is-bad{border-color:var(--bad);background:var(--bad-soft)}
+  .qhead{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .tag{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:5px;border:1px solid var(--line2);color:var(--muted)}
+  .lvl-easy{color:var(--ok);border-color:var(--ok)} .lvl-med{color:var(--warn);border-color:var(--warn)} .lvl-hard{color:var(--bad);border-color:var(--bad)}
+  .qtext{font-weight:600;margin:0 0 10px}
+  .opts{display:grid;gap:7px}
+  .opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;background:var(--paper)}
+  .opt:hover{border-color:var(--line2)}
+  .opt input{margin-top:4px;accent-color:var(--accent)}
+  .opt.o-ok{border-color:var(--ok);background:var(--ok-soft)}
+  .opt.o-bad{border-color:var(--bad);background:var(--bad-soft)}
+  .q input[type=text]{width:100%;font:16px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:10px 12px}
+  .mrow{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;margin:7px 0}
+  .mrow .ml{flex:1 1 160px;font-weight:500}
+  .mrow select{flex:1 1 180px;max-width:100%;font:15px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:8px 10px}
+  .mrow select.s-ok{border-color:var(--ok)} .mrow select.s-bad{border-color:var(--bad)}
+  .explain{margin-top:10px;padding:10px 12px;border:1px dashed var(--line2);border-radius:8px;color:var(--muted);font-size:15px}
+  .btn{font:600 14px/1 var(--body);color:var(--accent-ink);background:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:10px 16px;cursor:pointer}
+  .btn.ghost{color:var(--ink);background:var(--card);border-color:var(--line2)}
+  .btn.small{padding:8px 12px;font-size:13px}
+  .q .btn{margin-top:12px}
+  .testbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+  .score{margin-left:auto;font-family:var(--mono);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .score b{color:var(--accent);font-size:17px}
+  .bar{height:6px;border-radius:99px;background:var(--card2);overflow:hidden;margin:12px 0 4px}
+  .bar>div{height:100%;width:0;background:var(--accent);transition:width .4s}
+  .empty{color:var(--faint);text-align:center;padding:18px;font-family:var(--mono);font-size:13px}
+
+  /* Карточки */
+  .deckmeta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin-bottom:10px}
+  .deckmeta b{color:var(--ok)}
+  .deck{position:relative;height:250px;perspective:1200px}
+  .fc{position:absolute;inset:0;cursor:pointer;border:none;background:none;padding:0;font:inherit;color:inherit;width:100%}
+  .fc .inner{position:relative;width:100%;height:100%;transition:transform .5s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d}
+  .fc.flipped .inner{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:26px;border-radius:10px;border:1px solid var(--line2);background:var(--card)}
+  .face.front{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+  .face.front .t{font-family:var(--display);font-weight:500;font-size:clamp(18px,4.6vw,23px);line-height:1.25}
+  .face.back{transform:rotateY(180deg);border-color:var(--accent);background:var(--card2)}
+  .face.back .t{font-size:16px}
+  .face .hint{position:absolute;bottom:12px;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.06em}
+  .learned-tag{position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:11px;color:var(--ok);border:1px solid var(--ok);border-radius:5px;padding:1px 6px}
+  .deckbar{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .nav{width:42px;height:42px;border-radius:50%;border:1px solid var(--line2);background:var(--card);color:var(--ink);font-size:18px;cursor:pointer}
+  .counter{font-family:var(--mono);font-size:14px;color:var(--muted);min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+
+  /* Определения */
+  .terms{display:grid;gap:8px;margin:10px 0 4px}
+  .term{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--paper)}
+  .term b{color:var(--accent)}
+  details{border:1px solid var(--line);border-radius:8px;margin:8px 0;background:var(--paper)}
+  summary{cursor:pointer;padding:12px 14px;font-weight:600;list-style:none;display:flex;gap:10px}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"+";font-family:var(--mono);color:var(--margin);font-weight:700}
+  details[open] summary::before{content:"−"}
+  details .ans{padding:0 14px 12px 34px;color:var(--muted)}
+
+  .cheat li{margin:7px 0}
+  footer{margin-top:34px;padding-top:14px;border-top:1px solid var(--line);text-align:center;font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+  footer a{color:var(--accent);text-decoration:none}
+
+  @media (prefers-reduced-motion: reduce){.fc .inner,.bar>div{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="top">
+      <span class="eyebrow" id="eyebrow">тренажёр к паре</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <a class="author" id="author" href="#" target="_blank" rel="noopener">автор <b></b></a>
+        <button class="themebtn" id="themeBtn" type="button">Тема</button>
+      </div>
+    </div>
+    <h1 id="pageTitle"></h1>
+    <p class="sub" id="pageSub"></p>
+    <div class="meta" id="pageMeta"></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="konspekt" type="button">Конспект</button>
+    <button class="tab" role="tab" data-tab="tests" type="button">Тесты</button>
+    <button class="tab" role="tab" data-tab="cards" type="button">Карточки</button>
+    <button class="tab" role="tab" data-tab="oral" type="button">Определения</button>
+    <button class="tab" role="tab" data-tab="cheat" type="button">Шпаргалка</button>
+  </nav>
+  <div class="topics" id="topics"></div>
+
+  <main>
+    <div class="panel" id="p-konspekt"></div>
+    <div class="panel" id="p-tests" hidden>
+      <div class="controls">
+        <span><span class="ctl-label">режим</span><span class="seg" id="modeSeg"></span></span>
+        <span><span class="ctl-label">сложность</span><span class="seg" id="levelSeg"></span></span>
+      </div>
+      <div id="qlist"></div>
+      <div class="bar"><div id="bar"></div></div>
+      <div class="testbar">
+        <button class="btn" id="checkAll" type="button">Проверить всё</button>
+        <button class="btn ghost" id="resetAll" type="button">Заново</button>
+        <span class="score" id="score"></span>
+      </div>
+    </div>
+    <div class="panel" id="p-cards" hidden>
+      <div class="deckmeta"><span>Нажми на карточку, чтобы перевернуть.</span><span id="learned"></span></div>
+      <div class="deck" id="deck"></div>
+      <div class="deckbar">
+        <button class="nav" id="prev" type="button" aria-label="Предыдущая">‹</button>
+        <button class="btn ghost small" id="again" type="button">Повторить</button>
+        <span class="counter" id="counter"></span>
+        <button class="btn small" id="know" type="button">Знаю</button>
+        <button class="nav" id="next" type="button" aria-label="Следующая">›</button>
+      </div>
+      <div style="text-align:center;margin-top:10px"><button class="btn ghost small" id="shuffle" type="button">Перемешать</button></div>
+    </div>
+    <div class="panel" id="p-oral" hidden></div>
+    <div class="panel" id="p-cheat" hidden></div>
+  </main>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* ===== ПОДПИСЬ (не менять) ===== */
+const AUTHOR = { nick: "@ainaynandonikai", url: "https://github.com/ainaynandonikai" };
+
+/* ===== ДАННЫЕ - меняется только этот объект ===== */
+const DATA = {
+  title: "Векторные пространства",
+  subtitle: "Что такое вектор в Rⁿ, когда векторы линейно зависимы и что такое базис - с аналогиями и задачами из ТР №1.",
+  meta: ["Высшая математика", "Лекция 3", "3 темы", "примеры из ТР №1, вариант 16"],
+  topics: [
+    {
+      id: "space", name: "Пространство Rⁿ",
+      konspekt: `
+        <h3>Аналогия: адрес в городе</h3>
+        <p>Вектор - это <b>список чисел</b>. Как адрес дома: улица, дом, этаж. В R² адрес из 2 чисел (x, y), в R³ - из 3 чисел, в Rⁿ - из n чисел.</p>
+        <h3>Определение из лекции</h3>
+        <p>Обозначим через <b>Rⁿ</b> множество упорядоченных наборов по n действительных чисел: a = (a₁, a₂, …, aₙ). Сами такие наборы называются <mark>n-мерными векторами</mark>.</p>
+        <p>Два вектора a и b называются <b>равными</b>, если равны их соответствующие координаты: aᵢ = bᵢ.</p>
+        <h3>Две операции - всё по координатам</h3>
+        <pre>a + b = (a₁ + b₁, a₂ + b₂, …, aₙ + bₙ)     сложение
+λa    = (λa₁, λa₂, …, λaₙ)                  умножение на число</pre>
+        <p>Аналогия для сложения: два рюкзака с яблоками, грушами и сливами. Сложить - значит сложить яблоки с яблоками, груши с грушами.</p>
+        <p>Умножение на число: λ = 2 - вектор длиннее в 2 раза, λ = −1 - вектор разворачивается в обратную сторону.</p>
+        <h3>Пример</h3>
+        <pre>a = (1, 3),  b = (2, −1)
+a + b = (1 + 2, 3 + (−1)) = (3, 2)
+3a    = (3·1, 3·3)        = (3, 9)</pre>
+        <div class="callout"><b>Главное:</b> множество n-мерных векторов с операциями сложения и умножения на число называется <b>n-мерным линейным векторным пространством</b> Rⁿ. 8 свойств операций (a + b = b + a и т.д.) говорят одно: считать с векторами можно как с обычными числами.</div>
+        <h3>Нулевой и противоположный</h3>
+        <pre>0  = (0, 0, …, 0)            нулевой вектор
+−a = (−a₁, −a₂, …, −aₙ)      противоположный: a + (−a) = 0</pre>`,
+      terms: [
+        { term: "n-мерный вектор", def: "упорядоченный набор из n действительных чисел a = (a₁, a₂, …, aₙ)." },
+        { term: "Равные векторы", def: "векторы, у которых равны соответствующие координаты: aᵢ = bᵢ." },
+        { term: "Линейное векторное пространство Rⁿ", def: "множество n-мерных векторов с операциями сложения векторов и умножения на действительные числа." },
+        { term: "Нулевой вектор", def: "0 = (0, 0, …, 0)." },
+        { term: "Противоположный вектор", def: "−a = (−a₁, −a₂, …, −aₙ); a + (−a) = 0." }
+      ],
+      cards: [
+        { front: "Что такое вектор в Rⁿ?", back: "Упорядоченный набор из n чисел: (a₁, …, aₙ). Как адрес из n чисел." },
+        { front: "Как сложить два вектора?", back: "Покоординатно: (a₁ + b₁, …, aₙ + bₙ). Яблоки к яблокам." },
+        { front: "Как умножить вектор на число λ?", back: "Каждую координату на λ: (λa₁, …, λaₙ)." },
+        { front: "Что делает λ = −1?", back: "Разворачивает вектор в обратную сторону: получается противоположный вектор −a." },
+        { front: "(1, 3) + (2, −1) = ?", back: "(3, 2)." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Сколько чисел в векторе из R⁴?",
+          options: [{ t: "4", correct: true }, { t: "2", correct: false }, { t: "3", correct: false }, { t: "16", correct: false }],
+          explain: "Вектор из Rⁿ - набор из n чисел. В R⁴ - из 4." },
+        { type: "fill", level: "easy", q: "a = (1, 3), b = (2, −1). Первая координата a + b равна ___",
+          answers: ["3"], explain: "Складываем первые координаты: 1 + 2 = 3." },
+        { type: "single", level: "med", q: "Чему равно 3·(2, −1, 0)?",
+          options: [{ t: "(6, −3, 0)", correct: true }, { t: "(5, 2, 3)", correct: false }, { t: "(6, −1, 0)", correct: false }, { t: "(6, 3, 0)", correct: false }],
+          explain: "Каждую координату умножаем на 3: (3·2, 3·(−1), 3·0) = (6, −3, 0)." },
+        { type: "truefalse", level: "med", q: "Векторы (1, 2, 3) и (1, 3, 2) равны.", answer: false,
+          explain: "Равны только если равны соответствующие координаты. Вторая и третья координаты разные." },
+        { type: "match", level: "hard", q: "Сопоставь запись и её смысл.",
+          pairs: [{ left: "a + (−a)", right: "нулевой вектор" }, { left: "1·a", right: "сам вектор a" }, { left: "(−1)·a", right: "противоположный вектор" }, { left: "0 = (0, …, 0)", right: "нулевой вектор Rⁿ" }],
+          explain: "Это свойства линейных операций из лекции: a + (−a) = 0, 1·a = a." }
+      ],
+      oral: [
+        { q: "Дайте определение n-мерного вектора.", a: "Упорядоченный набор из n действительных чисел a = (a₁, a₂, …, aₙ)." },
+        { q: "Что называется линейным векторным пространством Rⁿ?", a: "Множество n-мерных векторов с операциями сложения векторов и умножения на действительные числа." },
+        { q: "Какие векторы называются равными?", a: "Векторы, у которых равны соответствующие координаты: aᵢ = bᵢ, i = 1, 2, …, n." }
+      ],
+      cheat: [
+        "<b>Вектор</b> - набор из n чисел (a₁, …, aₙ).",
+        "<b>a + b</b> и <b>λa</b> - считаем по координатам.",
+        "<b>0</b> = (0, …, 0), <b>−a</b> - все координаты с обратным знаком."
+      ]
+    },
+    {
+      id: "dep", name: "Линейная зависимость",
+      konspekt: `
+        <h3>Аналогия: краски</h3>
+        <p>Есть жёлтая и синяя краска. Смешиваем - получаем зелёную. Зелёная <b>выражается</b> через жёлтую и синюю. Если тебе дадут третью банку - зелёную, она <mark>лишняя</mark>: её и так можно намешать. Такой набор красок - <b>линейно зависимый</b>.</p>
+        <p>Если третья банка - красная, её из жёлтой и синей не намешать. Лишних нет - набор <b>линейно независимый</b>.</p>
+        <h3>Определения из лекции</h3>
+        <p>Вектор a называется <b>линейной комбинацией</b> векторов a₁, …, aₖ, если найдутся числа α₁, …, αₖ такие, что:</p>
+        <pre>a = α₁a₁ + α₂a₂ + … + αₖaₖ</pre>
+        <p>Система векторов называется <b>линейно зависимой</b>, если хотя бы один из векторов системы является линейной комбинацией остальных. Если ни один не представляется как комбинация других - <b>линейно независимой</b>.</p>
+        <h3>Что это значит на картинке</h3>
+        <ul>
+          <li>R², два вектора: зависимы - значит <mark>параллельны</mark> (коллинеарны). Две стрелки на одной прямой.</li>
+          <li>R³, три вектора: зависимы - значит <mark>в одной плоскости</mark> (компланарны). Три карандаша, лежащие на столе.</li>
+        </ul>
+        <h3>Как проверить - два случая</h3>
+        <div class="tablebox"><table>
+          <tr><th>Сколько векторов</th><th>Как проверять</th><th>Зависимы, если</th></tr>
+          <tr><td>2 вектора</td><td>делим координаты друг на друга</td><td>все отношения равны (пропорциональны)</td></tr>
+          <tr><td>n векторов в Rⁿ</td><td>определитель из координат (Саррюс)</td><td>Δ = 0</td></tr>
+        </table></div>
+        <p>Аналогия для определителя: из векторов строим коробку. Определитель - её объём. Коробка сплющилась в лист - объём 0 - векторы зависимы.</p>
+        <h3>Пример 1 - два вектора (из лекции)</h3>
+        <pre>a = (1, 4, −2, 3),  b = (2, 8, −4, 6)
+1/2 = 4/8 = −2/−4 = 3/6   - все равны 1/2
+→ пропорциональны → линейно зависимы</pre>
+        <h3>Пример 2 - ТР, вариант 16, задача 2.4а</h3>
+        <pre>a = (1, −9),  b = (−9, −2)
+1/(−9) ≈ −0,11     −9/(−2) = 4,5    - не равны
+→ не пропорциональны → линейно независимы</pre>
+        <h3>Пример 3 - три вектора (из лекции)</h3>
+        <pre>a = (3, −2, 1), b = (4, 1, −3), c = (2, −3, −1)
+
+Δ = |3  −2   1|
+    |4   1  −3|
+    |2  −3  −1|  =
+
+3·1·(−1) + (−2)·(−3)·2 + 1·4·(−3) = −3 + 12 − 12 = −3
+1·1·2 + 3·(−3)·(−3) + (−2)·4·(−1) = 2 + 27 + 8 = 37
+Δ = −3 − 37 = −40 ≠ 0  →  линейно независимы</pre>
+        <h3>Пример 4 - ТР, вариант 16, задача 2.4в</h3>
+        <pre>a = (−1, 5, 3), b = (−2, 6, −1), c = (2, −1, 3)
+
+(−1)·6·3 + 5·(−1)·2 + 3·(−2)·(−1) = −18 − 10 + 6 = −22
+3·6·2 + (−1)·(−1)·(−1) + 5·(−2)·3 = 36 − 1 − 30 = 5
+Δ = −22 − 5 = −27 ≠ 0  →  линейно независимы</pre>
+        <div class="callout"><b>Главное:</b> любые n + 1 векторов в Rⁿ всегда линейно зависимы. Три вектора на плоскости R² - обязательно один лишний.</div>`,
+      terms: [
+        { term: "Линейная комбинация", def: "вектор a = α₁a₁ + α₂a₂ + … + αₖaₖ, где α - действительные числа." },
+        { term: "Линейно зависимая система", def: "система, в которой хотя бы один вектор является линейной комбинацией остальных." },
+        { term: "Линейно независимая система", def: "система, в которой ни один вектор не представляется как линейная комбинация других." },
+        { term: "Коллинеарные векторы", def: "параллельные векторы; в R² линейная зависимость означает коллинеарность." },
+        { term: "Компланарные векторы", def: "векторы, лежащие в одной плоскости; в R³ линейная зависимость трёх векторов означает компланарность." }
+      ],
+      cards: [
+        { front: "Когда система линейно зависима?", back: "Когда хотя бы один вектор - линейная комбинация остальных («лишняя краска»)." },
+        { front: "Зависимость двух векторов в R² - это…", back: "Коллинеарность: векторы параллельны." },
+        { front: "Зависимость трёх векторов в R³ - это…", back: "Компланарность: векторы лежат в одной плоскости." },
+        { front: "Критерий для двух векторов", back: "Зависимы ⟺ координаты пропорциональны." },
+        { front: "Критерий для n векторов в Rⁿ", back: "Зависимы ⟺ определитель из координат равен 0." },
+        { front: "Сколько векторов в Rⁿ всегда зависимы?", back: "Любые n + 1." }
+      ],
+      questions: [
+        { type: "truefalse", level: "easy", q: "Если определитель из координат трёх векторов R³ равен 0, векторы линейно зависимы.", answer: true,
+          explain: "Δ = 0 - коробка сплющилась - векторы в одной плоскости - зависимы." },
+        { type: "single", level: "easy", q: "Векторы a = (1, 4, −2, 3) и b = (2, 8, −4, 6):",
+          options: [{ t: "линейно зависимы", correct: true }, { t: "линейно независимы", correct: false }, { t: "ортогональны", correct: false }, { t: "нельзя определить", correct: false }],
+          explain: "1/2 = 4/8 = −2/−4 = 3/6 - координаты пропорциональны, b = 2a." },
+        { type: "single", level: "med", q: "Вариант 16, 2.4а: a = (1, −9), b = (−9, −2). Какие они?",
+          options: [{ t: "линейно независимы", correct: true }, { t: "линейно зависимы", correct: false }, { t: "равны", correct: false }, { t: "противоположны", correct: false }],
+          explain: "1/(−9) ≠ −9/(−2): координаты не пропорциональны - векторы не параллельны - независимы." },
+        { type: "fill", level: "hard", q: "Вариант 16, 2.4в: определитель из a = (−1, 5, 3), b = (−2, 6, −1), c = (2, −1, 3) равен ___",
+          answers: ["-27", "−27"], explain: "По Саррюсу: (−18 − 10 + 6) − (36 − 1 − 30) = −22 − 5 = −27 ≠ 0, векторы независимы." },
+        { type: "truefalse", level: "med", q: "Три вектора на плоскости R² могут быть линейно независимыми.", answer: false,
+          explain: "Любые n + 1 векторов в Rⁿ зависимы. В R² это любые 3 вектора." },
+        { type: "multiple", level: "hard", q: "Вариант 16, 2.4б: a = (−2, 2, −2), b = (−4, 4, −4). Что верно?",
+          options: [{ t: "координаты пропорциональны", correct: true }, { t: "векторы линейно зависимы", correct: true }, { t: "b = 2a", correct: true }, { t: "векторы линейно независимы", correct: false }],
+          explain: "−2/−4 = 2/4 = −2/−4 = 1/2. b = 2a, векторы параллельны - зависимы." },
+        { type: "match", level: "med", q: "Сопоставь пространство и смысл зависимости.",
+          pairs: [{ left: "2 вектора в R²", right: "коллинеарны (параллельны)" }, { left: "3 вектора в R³", right: "компланарны (одна плоскость)" }, { left: "Δ ≠ 0", right: "линейно независимы" }, { left: "Δ = 0", right: "линейно зависимы" }],
+          explain: "Геометрический смысл и критерий через определитель - из лекции." }
+      ],
+      oral: [
+        { q: "Дайте определение линейной комбинации векторов.", a: "Вектор a называется линейной комбинацией векторов a₁, …, aₖ, если найдутся действительные числа α₁, …, αₖ такие, что a = α₁a₁ + α₂a₂ + … + αₖaₖ." },
+        { q: "Какая система векторов называется линейно зависимой?", a: "Система, в которой хотя бы один из векторов является линейной комбинацией остальных." },
+        { q: "Сформулируйте критерий линейной зависимости двух векторов.", a: "Два вектора линейно зависимы тогда и только тогда, когда их соответствующие координаты пропорциональны." },
+        { q: "Как проверить линейную зависимость n векторов в Rⁿ?", a: "Составить определитель из координат этих векторов: если он равен нулю - система зависима, если отличен от нуля - независима." }
+      ],
+      cheat: [
+        "<b>Зависимы</b> - есть «лишний» вектор, он выражается через другие.",
+        "<b>2 вектора:</b> пропорциональны ⟺ зависимы.",
+        "<b>n векторов в Rⁿ:</b> Δ = 0 ⟺ зависимы, Δ ≠ 0 ⟺ независимы.",
+        "R²: зависимость = параллельность. R³: три вектора в одной плоскости.",
+        "Любые <b>n + 1</b> векторов в Rⁿ зависимы."
+      ]
+    },
+    {
+      id: "basis", name: "Базис",
+      konspekt: `
+        <h3>Базис на примере: детали</h3>
+        <p>Базис - набор векторов-«деталей», из которых собирается <b>любой</b> вектор, причём <mark>одним-единственным способом</mark>. Сколько штук каждой детали взяли - это коэффициенты разложения.</p>
+        <pre>Детали i = (1, 0), j = (0, 1):
+(3, 5)  = 3·i + 5·j
+(4, −2) = 4·i + (−2)·j       ← минус тоже коэффициент
+
+Детали a = (1, 1), b = (1, −1):
+(3, 1) = 2·a + 1·b           ← (2, 2) + (1, −1)
+(0, 2) = 1·a + (−1)·b        ← (1, 1) + (−1, 1)</pre>
+        <p>С деталями i, j коэффициенты равны координатам. С другими деталями числа свои, их находят системой уравнений (так и устроена задача 3 в ТР).</p>
+        <p>Почему важно «одним способом»: возьмём детали (1, 0), (0, 1), (1, 1). Вектор (1, 1) собирается двумя способами: 1·третья или 1·первая + 1·вторая. Третья деталь лишняя (зависимая), поэтому такой набор <b>не базис</b>.</p>
+        <h3>Определение из лекции</h3>
+        <p>Система векторов {e₁, e₂, …, eₙ} называется <b>базисом</b> пространства Rⁿ, если любой вектор a ∈ Rⁿ может быть единственным образом представлен в виде линейной комбинации векторов этой системы:</p>
+        <pre>a = α₁e₁ + α₂e₂ + … + αₙeₙ</pre>
+        <p>Числа α₁, α₂, …, αₙ называют <b>коэффициентами разложения</b> вектора a по базису.</p>
+        <h3>Естественный базис</h3>
+        <p>В R² - орты i, j, в R³ - орты i, j, k. Коэффициенты разложения по нему - просто координаты: a = (2, 5) = 2i + 5j.</p>
+        <h3>Теоремы</h3>
+        <ul>
+          <li>Если система векторов образует базис - она линейно независима.</li>
+          <li>Любые n линейно независимых векторов пространства Rⁿ образуют в нём базис.</li>
+        </ul>
+        <div class="callout"><b>Главное:</b> 3 вектора в R³ - базис ⟺ определитель из их координат ≠ 0. Та же проверка, что на зависимость.</div>
+        <h3>Задача ТР - алгоритм</h3>
+        <ol>
+          <li>Посчитать Δ из координат a, b, c. Δ ≠ 0 - базис.</li>
+          <li>Записать d = x·a + y·b + z·c.</li>
+          <li>Перейти к координатам: координаты a, b, c идут <mark>столбцами</mark>, справа - координаты d.</li>
+          <li>Решить систему Крамером.</li>
+          <li>Проверить: сложить x·a + y·b + z·c и сравнить с d.</li>
+        </ol>
+        <h3>Пример из лекции</h3>
+        <pre>a = (2, −1, 2), b = (−3, 1, −1), c = (1, −2, −3), d = (17, −15, −7)
+
+Δ = | 2  −1   2|
+    |−3   1  −1|
+    | 1  −2  −3|  =
+
+2·1·(−3) + (−1)·(−1)·1 + 2·(−3)·(−2) = −6 + 1 + 12 = 7
+2·1·1 + 2·(−1)·(−2) + (−1)·(−3)·(−3) = 2 + 4 − 9 = −3
+Δ = 7 − (−3) = 10 ≠ 0  →  базис
+
+ 2x − 3y +  z =  17
+−x  +  y − 2z = −15
+ 2x −  y − 3z =  −7
+
+x = 3, y = −2, z = 5   →   d = 3a − 2b + 5c</pre>
+        <h3>Твой вариант 16 - задача 3</h3>
+        <pre>a = (1, 2, −7), b = (0, 3, 1), c = (2, −1, −3), d = (1, 0, 5)
+
+1·3·(−3) + 2·1·2 + (−7)·0·(−1) = −9 + 4 + 0 = −5
+(−7)·3·2 + 1·1·(−1) + 2·0·(−3) = −42 − 1 + 0 = −43
+Δ = −5 − (−43) = 38 ≠ 0  →  базис
+
+  x + 0y + 2z = 1
+ 2x + 3y −  z = 0
+−7x +  y − 3z = 5
+
+x = −1, y = 1, z = 1   →   d = −a + b + c
+
+Проверка: −(1, 2, −7) + (0, 3, 1) + (2, −1, −3) = (1, 0, 5)  ✓</pre>`,
+      terms: [
+        { term: "Базис Rⁿ", def: "система векторов {e₁, …, eₙ}, через которую любой вектор a ∈ Rⁿ единственным образом представляется как линейная комбинация: a = α₁e₁ + … + αₙeₙ." },
+        { term: "Коэффициенты разложения", def: "числа α₁, …, αₙ в записи a = α₁e₁ + … + αₙeₙ." },
+        { term: "Естественный базис", def: "система единичных ортов i, j (в R²) или i, j, k (в R³); коэффициенты разложения по нему - координаты вектора." }
+      ],
+      cards: [
+        { front: "Что такое базис?", back: "Набор векторов, через который любой вектор выражается единственным способом." },
+        { front: "Как проверить, что a, b, c - базис R³?", back: "Определитель из их координат ≠ 0." },
+        { front: "Естественный базис R³", back: "Орты i, j, k." },
+        { front: "a = (2, 5) по базису i, j", back: "a = 2i + 5j - коэффициенты равны координатам." },
+        { front: "Как составить систему для разложения d?", back: "Координаты a, b, c - столбцами, справа - координаты d." },
+        { front: "Вариант 16: разложение d = (1, 0, 5)", back: "d = −a + b + c (x = −1, y = 1, z = 1)." }
+      ],
+      questions: [
+        { type: "truefalse", level: "easy", q: "Любые 3 линейно независимых вектора R³ образуют в нём базис.", answer: true,
+          explain: "Теорема: любые n линейно независимых векторов Rⁿ образуют базис." },
+        { type: "single", level: "easy", q: "Определитель из координат a, b, c равен 0. Образуют ли они базис R³?",
+          options: [{ t: "Нет, они линейно зависимы", correct: true }, { t: "Да", correct: false }, { t: "Да, если векторы не нулевые", correct: false }, { t: "Нельзя определить", correct: false }],
+          explain: "Δ = 0 - векторы зависимы, а базис всегда линейно независим." },
+        { type: "fill", level: "med", q: "Вариант 16, задача 3: определитель из a = (1, 2, −7), b = (0, 3, 1), c = (2, −1, −3) равен ___",
+          answers: ["38"], explain: "По Саррюсу: (−9 + 4 + 0) − (−42 − 1 + 0) = −5 + 43 = 38 ≠ 0 - базис." },
+        { type: "single", level: "med", q: "При разложении d = x·a + y·b + z·c координаты a, b, c в системе записываются…",
+          options: [{ t: "столбцами при x, y, z", correct: true }, { t: "строками", correct: false }, { t: "в правую часть", correct: false }, { t: "не нужны", correct: false }],
+          explain: "Первое уравнение - первые координаты: a₁x + b₁y + c₁z = d₁. Значит, вектор a - столбец при x." },
+        { type: "fill", level: "hard", q: "Вариант 16: d = (1, 0, 5) = x·a + y·b + z·c. Чему равен x? x = ___",
+          answers: ["-1", "−1"], explain: "Решение системы: x = −1, y = 1, z = 1. Проверка: −a + b + c = (1, 0, 5)." },
+        { type: "match", level: "med", q: "Сопоставь.",
+          pairs: [{ left: "Естественный базис R²", right: "i, j" }, { left: "Естественный базис R³", right: "i, j, k" }, { left: "α₁, …, αₙ", right: "коэффициенты разложения" }, { left: "Δ ≠ 0", right: "векторы образуют базис" }],
+          explain: "Определения из лекции 3, раздел «Базисы в пространствах Rⁿ»." }
+      ],
+      oral: [
+        { q: "Дайте определение базиса пространства Rⁿ.", a: "Система векторов {e₁, e₂, …, eₙ} называется базисом пространства Rⁿ, если любой вектор a ∈ Rⁿ может быть единственным образом представлен в виде линейной комбинации векторов этой системы." },
+        { q: "Что называют коэффициентами разложения?", a: "Числа α₁, α₂, …, αₙ в записи a = α₁e₁ + α₂e₂ + … + αₙeₙ." },
+        { q: "Как доказать, что три вектора образуют базис в R³?", a: "Составить определитель из их координат. Если он не равен нулю, векторы линейно независимы и образуют базис." },
+        { q: "Какой базис называют естественным?", a: "Систему единичных ортов i, j (в R²) или i, j, k (в R³); коэффициенты разложения по нему - это координаты вектора." }
+      ],
+      cheat: [
+        "<b>Базис</b> - любой вектор выражается через него <b>единственным</b> способом.",
+        "3 вектора в R³ - базис ⟺ <b>Δ ≠ 0</b>.",
+        "Разложение: d = xa + yb + zc → координаты a, b, c <b>столбцами</b> → Крамер.",
+        "Вариант 16: Δ = 38, <b>d = −a + b + c</b>."
+      ]
+    }
+  ]
+};
+
+/* ===== ДВИЖОК (не менять) ===== */
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const make = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const KEY = "trenazher:" + DATA.title;
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const norm = (s) => String(s).toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").replace(/[.,;!]+$/, "").trim();
+  const TYPE = { single: "один ответ", multiple: "несколько", truefalse: "верно / неверно", fill: "вписать", match: "сопоставить" };
+  const LEVEL = { easy: "лёгкий", med: "средний", hard: "сложный" };
+
+  /* Шапка и подпись */
+  document.title = DATA.title;
+  $("#pageTitle").textContent = DATA.title;
+  $("#pageSub").textContent = DATA.subtitle || "";
+  (DATA.meta || []).forEach((m) => $("#pageMeta").appendChild(make("span", "chip", esc(m))));
+  const au = $("#author"); au.href = AUTHOR.url; au.querySelector("b").textContent = AUTHOR.nick;
+  $("#footer").innerHTML = 'Тренажёр собрал <a href="' + esc(AUTHOR.url) + '" target="_blank" rel="noopener">' + esc(AUTHOR.nick) + "</a>";
+
+  /* Тема */
+  const root = document.documentElement;
+  const dark = () => root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const savedTheme = store.get(KEY + ":theme", null);
+  if (savedTheme) root.dataset.theme = savedTheme;
+  const themeLabel = () => { $("#themeBtn").textContent = dark() ? "Светлая тема" : "Тёмная тема"; };
+  $("#themeBtn").onclick = () => { const t = dark() ? "light" : "dark"; root.dataset.theme = t; store.set(KEY + ":theme", t); themeLabel(); };
+  themeLabel();
+
+  /* Фильтр тем */
+  let topic = "all";
+  const sel = () => topic === "all" ? DATA.topics : DATA.topics.filter((t) => t.id === topic);
+  function renderTopics() {
+    const box = $("#topics"); box.innerHTML = "";
+    if (DATA.topics.length < 2) return;
+    [{ id: "all", name: "Все темы" }].concat(DATA.topics).forEach((t) => {
+      const b = make("button", "tchip", esc(t.name)); b.type = "button";
+      b.setAttribute("aria-pressed", String(t.id === topic));
+      b.onclick = () => { topic = t.id; renderAll(); };
+      box.appendChild(b);
+    });
+  }
+
+  /* Конспект */
+  function renderKonspekt() {
+    const p = $("#p-konspekt"); p.innerHTML = "";
+    sel().forEach((t) => {
+      const s = make("section", "sheet");
+      s.appendChild(make("span", "kicker", "тема"));
+      s.appendChild(make("h2", null, esc(t.name)));
+      s.appendChild(make("div", null, t.konspekt || ""));
+      p.appendChild(s);
+    });
+  }
+
+  /* Тесты */
+  let mode = "learn", level = "all", qs = [];
+  function seg(boxId, items, cur, set) {
+    const box = $(boxId); box.innerHTML = "";
+    items.forEach(([v, label]) => {
+      const b = make("button", null, label); b.type = "button";
+      b.setAttribute("aria-pressed", String(v === cur));
+      b.onclick = () => { set(v); renderTests(); };
+      box.appendChild(b);
+    });
+  }
+  function renderTests() {
+    seg("#modeSeg", [["learn", "Учёба"], ["exam", "Экзамен"]], mode, (v) => { mode = v; });
+    seg("#levelSeg", [["all", "Все"], ["easy", "Лёгкие"], ["med", "Средние"], ["hard", "Сложные"]], level, (v) => { level = v; });
+    const list = $("#qlist"); list.innerHTML = "";
+    qs = [];
+    sel().forEach((t) => (t.questions || []).forEach((q) => { if (level === "all" || q.level === level) qs.push(q); }));
+    $("#score").textContent = ""; $("#bar").style.width = "0";
+    if (!qs.length) { list.appendChild(make("div", "empty", "Нет вопросов с таким фильтром")); return; }
+    qs.forEach((q, i) => list.appendChild(renderQ(q, i)));
+  }
+  function renderQ(q, i) {
+    const box = make("div", "q"); box.dataset.i = i;
+    const head = make("div", "qhead");
+    head.appendChild(make("span", "tag", (i + 1) + " · " + TYPE[q.type]));
+    if (q.level) head.appendChild(make("span", "tag lvl-" + q.level, LEVEL[q.level] || q.level));
+    box.appendChild(head);
+    box.appendChild(make("p", "qtext", esc(q.q)));
+    const name = "q" + i;
+    if (q.type === "single" || q.type === "multiple") {
+      const opts = make("div", "opts");
+      shuffle(q.options.map((o, k) => ({ o, k }))).forEach(({ o, k }) => {
+        const l = make("label", "opt"); l.dataset.k = k;
+        const inp = document.createElement("input"); inp.type = q.type === "single" ? "radio" : "checkbox"; inp.name = name; inp.value = k; inp.id = name + "-" + k;
+        l.appendChild(inp); l.appendChild(make("span", null, esc(o.t))); opts.appendChild(l);
+      });
+      box.appendChild(opts);
+    } else if (q.type === "truefalse") {
+      const opts = make("div", "opts");
+      [["true", "Верно"], ["false", "Неверно"]].forEach(([v, t]) => {
+        const l = make("label", "opt"); l.dataset.k = v;
+        const inp = document.createElement("input"); inp.type = "radio"; inp.name = name; inp.value = v; inp.id = name + "-" + v;
+        l.appendChild(inp); l.appendChild(make("span", null, t)); opts.appendChild(l);
+      });
+      box.appendChild(opts);
+    } else if (q.type === "fill") {
+      const inp = document.createElement("input"); inp.type = "text"; inp.id = name + "-fill"; inp.placeholder = "Твой ответ"; inp.autocomplete = "off";
+      inp.onkeydown = (e) => { if (e.key === "Enter") check(box, q); };
+      box.appendChild(inp);
+    } else if (q.type === "match") {
+      const rights = shuffle(q.pairs.map((p) => p.right));
+      q.pairs.forEach((p, k) => {
+        const row = make("div", "mrow");
+        row.appendChild(make("span", "ml", esc(p.left)));
+        const s = document.createElement("select"); s.id = name + "-m" + k;
+        s.appendChild(new Option("выбери…", ""));
+        rights.forEach((r) => s.appendChild(new Option(r, r)));
+        row.appendChild(s); box.appendChild(row);
+      });
+    }
+    const ex = make("div", "explain", "<b>Разбор:</b> " + esc(q.explain || "")); ex.hidden = true; box.appendChild(ex);
+    if (mode === "learn") {
+      const b = make("button", "btn ghost small", "Проверить"); b.type = "button";
+      b.onclick = () => check(box, q); box.appendChild(b);
+    }
+    return box;
+  }
+  function check(box, q) {
+    let ok = false;
+    const labels = [...box.querySelectorAll(".opt")];
+    labels.forEach((l) => l.classList.remove("o-ok", "o-bad"));
+    if (q.type === "single" || q.type === "multiple") {
+      const picked = new Set([...box.querySelectorAll("input:checked")].map((x) => +x.value));
+      const right = new Set(q.options.map((o, k) => o.correct ? k : -1).filter((k) => k >= 0));
+      ok = picked.size === right.size && [...picked].every((k) => right.has(k));
+      labels.forEach((l) => { const k = +l.dataset.k; if (right.has(k)) l.classList.add("o-ok"); else if (picked.has(k)) l.classList.add("o-bad"); });
+    } else if (q.type === "truefalse") {
+      const p = box.querySelector("input:checked");
+      ok = !!p && (p.value === "true") === q.answer;
+      labels.forEach((l) => { const isRight = (l.dataset.k === "true") === q.answer; if (isRight) l.classList.add("o-ok"); else if (p && p.value === l.dataset.k) l.classList.add("o-bad"); });
+    } else if (q.type === "fill") {
+      const v = norm(box.querySelector("input").value);
+      ok = v !== "" && q.answers.some((a) => norm(a) === v);
+    } else if (q.type === "match") {
+      ok = true;
+      box.querySelectorAll("select").forEach((s, k) => { const good = s.value === q.pairs[k].right; s.classList.toggle("s-ok", good); s.classList.toggle("s-bad", !good); if (!good) ok = false; });
+    }
+    box.classList.toggle("is-ok", ok); box.classList.toggle("is-bad", !ok);
+    box.querySelector(".explain").hidden = false;
+    return ok;
+  }
+  $("#checkAll").onclick = () => {
+    if (!qs.length) return;
+    let n = 0;
+    document.querySelectorAll("#qlist .q").forEach((box) => { if (check(box, qs[+box.dataset.i])) n++; });
+    const pct = Math.round(n / qs.length * 100);
+    $("#score").innerHTML = "<b>" + n + " / " + qs.length + "</b> · " + pct + "%";
+    $("#bar").style.width = pct + "%";
+  };
+  $("#resetAll").onclick = () => renderTests();
+
+  /* Карточки */
+  let deck = [], idx = 0;
+  let learned = new Set(store.get(KEY + ":learned", []));
+  function renderCards(reshuffle) {
+    const all = []; sel().forEach((t) => (t.cards || []).forEach((c) => all.push(c)));
+    deck = reshuffle ? shuffle(all) : all; if (idx >= deck.length) idx = 0;
+    drawCard();
+  }
+  function drawCard() {
+    const box = $("#deck"); box.innerHTML = "";
+    const n = deck.filter((c) => learned.has(c.front)).length;
+    $("#learned").innerHTML = deck.length ? "Знаю: <b>" + n + "</b> из " + deck.length : "";
+    if (!deck.length) { box.appendChild(make("div", "empty", "В этой теме нет карточек")); $("#counter").textContent = "0 / 0"; return; }
+    const c = deck[idx];
+    const fc = make("button", "fc"); fc.type = "button"; fc.setAttribute("aria-label", "Перевернуть карточку");
+    const inner = make("div", "inner");
+    const front = make("div", "face front", '<div class="t">' + esc(c.front) + '</div><span class="hint">нажми - ответ</span>');
+    const back = make("div", "face back", '<div class="t">' + esc(c.back) + "</div>");
+    if (learned.has(c.front)) front.appendChild(make("span", "learned-tag", "знаю"));
+    inner.appendChild(front); inner.appendChild(back); fc.appendChild(inner);
+    fc.onclick = () => fc.classList.toggle("flipped");
+    box.appendChild(fc);
+    $("#counter").textContent = (idx + 1) + " / " + deck.length;
+  }
+  const step = (d) => { if (!deck.length) return; idx = (idx + d + deck.length) % deck.length; drawCard(); };
+  const mark = (on) => { if (!deck.length) return; const f = deck[idx].front; on ? learned.add(f) : learned.delete(f); store.set(KEY + ":learned", [...learned]); step(1); };
+  $("#prev").onclick = () => step(-1);
+  $("#next").onclick = () => step(1);
+  $("#know").onclick = () => mark(true);
+  $("#again").onclick = () => mark(false);
+  $("#shuffle").onclick = () => { idx = 0; renderCards(true); };
+
+  /* Определения */
+  function renderOral() {
+    const p = $("#p-oral"); p.innerHTML = "";
+    sel().forEach((t) => {
+      const s = make("section", "sheet");
+      s.appendChild(make("span", "kicker", "тема"));
+      s.appendChild(make("h2", null, esc(t.name)));
+      if ((t.terms || []).length) {
+        const g = make("div", "terms");
+        t.terms.forEach((x) => g.appendChild(make("div", "term", "<b>" + esc(x.term) + "</b> - " + esc(x.def))));
+        s.appendChild(g);
+      }
+      (t.oral || []).forEach((o) => {
+        const d = document.createElement("details");
+        d.appendChild(make("summary", null, esc(o.q)));
+        d.appendChild(make("div", "ans", esc(o.a)));
+        s.appendChild(d);
+      });
+      p.appendChild(s);
+    });
+  }
+
+  /* Шпаргалка */
+  function renderCheat() {
+    const p = $("#p-cheat"); p.innerHTML = "";
+    const s = make("section", "sheet cheat");
+    s.appendChild(make("span", "kicker", "за час до пары"));
+    s.appendChild(make("h2", null, "Шпаргалка"));
+    sel().forEach((t) => {
+      s.appendChild(make("h3", null, esc(t.name)));
+      const ul = make("ul");
+      (t.cheat || []).forEach((c) => ul.appendChild(make("li", null, c)));
+      s.appendChild(ul);
+    });
+    p.appendChild(s);
+  }
+
+  /* Вкладки */
+  const TABS = ["konspekt", "tests", "cards", "oral", "cheat"];
+  function openTab(id) {
+    if (!TABS.includes(id)) id = "konspekt";
+    document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === id)));
+    TABS.forEach((t) => { $("#p-" + t).hidden = t !== id; });
+    store.set(KEY + ":tab", id);
+  }
+  document.querySelectorAll(".tab").forEach((t) => { t.onclick = () => openTab(t.dataset.tab); });
+
+  function renderAll() { renderTopics(); renderKonspekt(); renderTests(); renderCards(false); renderOral(); renderCheat(); }
+  renderAll();
+  openTab((location.hash || "").slice(1) || store.get(KEY + ":tab", "konspekt"));
+})();
+</script>

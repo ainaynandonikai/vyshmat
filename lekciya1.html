@@ -1,0 +1,1217 @@
+<title>Матрицы и определители</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+  /* Светлая тема - тетрадь в клетку, тёмная - школьная доска */
+  :root{
+    --paper:#F5F6F1; --grid:rgba(47,85,212,.085); --card:#FFFFFF; --card2:#F0F2F7;
+    --ink:#1C2333; --muted:#566078; --faint:#8790A4; --line:#D8DDE6; --line2:#C3CAD8;
+    --accent:#2F55D4; --accent-ink:#FFFFFF; --accent-soft:rgba(47,85,212,.10);
+    --margin:#D2455A; --margin-soft:rgba(210,69,90,.09); --hl:rgba(255,208,0,.38);
+    --ok:#23804F; --ok-soft:rgba(35,128,79,.11); --bad:#C4344A; --bad-soft:rgba(196,52,74,.09); --warn:#A86A12;
+    --display:"Unbounded","Golos Text",system-ui,sans-serif;
+    --body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --paper:#17201C; --grid:rgba(230,236,228,.045); --card:#1E2924; --card2:#24312B;
+      --ink:#E5EBE3; --muted:#A6B2A9; --faint:#7A877E; --line:#2F3C35; --line2:#3E4D45;
+      --accent:#8FB1FF; --accent-ink:#10182A; --accent-soft:rgba(143,177,255,.14);
+      --margin:#FF8898; --margin-soft:rgba(255,136,152,.12); --hl:rgba(255,214,64,.22);
+      --ok:#6FD29C; --ok-soft:rgba(111,210,156,.13); --bad:#FF8898; --bad-soft:rgba(255,136,152,.12); --warn:#E7B65B;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --paper:#17201C; --grid:rgba(230,236,228,.045); --card:#1E2924; --card2:#24312B;
+    --ink:#E5EBE3; --muted:#A6B2A9; --faint:#7A877E; --line:#2F3C35; --line2:#3E4D45;
+    --accent:#8FB1FF; --accent-ink:#10182A; --accent-soft:rgba(143,177,255,.14);
+    --margin:#FF8898; --margin-soft:rgba(255,136,152,.12); --hl:rgba(255,214,64,.22);
+    --ok:#6FD29C; --ok-soft:rgba(111,210,156,.13); --bad:#FF8898; --bad-soft:rgba(255,136,152,.12); --warn:#E7B65B;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--body);font-size:16px;line-height:1.6;color:var(--ink);background-color:var(--paper);
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:24px 24px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:780px;margin:0 auto;padding:0 16px;padding-block:28px 64px;position:relative}
+  @media (min-width:860px){.wrap::before{content:"";position:absolute;top:0;bottom:0;left:-22px;width:2px;background:var(--margin-soft)}}
+
+  /* Шапка */
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--margin)}
+  .author{font-family:var(--mono);font-size:12.5px;color:var(--muted);text-decoration:none;border:1px solid var(--line2);
+    border-radius:999px;padding:4px 11px;background:var(--card)}
+  .author b{color:var(--accent);font-weight:600}
+  .author:hover{border-color:var(--accent)}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,6.4vw,44px);line-height:1.1;letter-spacing:-.01em;
+    margin:16px 0 8px;text-wrap:balance}
+  .sub{color:var(--muted);margin:0;max-width:62ch}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .chip{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--line);background:var(--card);padding:3px 9px;border-radius:6px}
+  .themebtn{font-family:var(--mono);font-size:12.5px;color:var(--ink);background:var(--card);border:1px solid var(--line2);
+    border-radius:8px;padding:6px 11px;cursor:pointer}
+  .themebtn:hover{border-color:var(--accent)}
+
+  /* Вкладки и темы */
+  .tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:4px;overflow-x:auto;margin:22px -16px 0;padding:10px 16px 0;
+    background:var(--paper);border-bottom:1px solid var(--line)}
+  .tabs::-webkit-scrollbar{height:0}
+  .tab{font:600 14px/1 var(--body);color:var(--muted);background:none;border:none;border-bottom:3px solid transparent;
+    padding:10px 12px 11px;cursor:pointer;white-space:nowrap}
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+  .topics{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 4px}
+  .tchip{font:500 13px/1 var(--body);color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 13px;cursor:pointer}
+  .tchip:hover{border-color:var(--line2);color:var(--ink)}
+  .tchip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .panel{margin-top:14px}
+  .sheet{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px 20px;margin-bottom:14px}
+  .sheet>h2{font-family:var(--display);font-weight:500;font-size:20px;margin:0 0 4px;text-wrap:balance}
+  .kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+  h3{font-size:17px;margin:20px 0 6px}
+  p{margin:8px 0}
+  ul,ol{margin:8px 0;padding-left:22px}
+  li{margin:4px 0}
+  mark{background:var(--hl);color:inherit;padding:0 3px;border-radius:3px}
+  code{font-family:var(--mono);font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+  pre{font-family:var(--mono);font-size:14px;line-height:1.5;background:var(--card2);border:1px solid var(--line);border-radius:8px;
+    padding:12px 14px;overflow-x:auto;margin:10px 0}
+  .callout{border-left:3px solid var(--margin);background:var(--margin-soft);border-radius:0 8px 8px 0;padding:10px 14px;margin:14px 0}
+  .tablebox{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:10px 0}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+
+  /* Тесты */
+  .controls{display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+  .seg button{font:500 13px/1 var(--body);color:var(--muted);background:var(--card);border:none;padding:8px 12px;cursor:pointer}
+  .seg button+button{border-left:1px solid var(--line2)}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+  .ctl-label{font-family:var(--mono);font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-right:6px}
+  .q{border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px;background:var(--card)}
+  .q.is-ok{border-color:var(--ok);background:var(--ok-soft)}
+  .q.is-bad{border-color:var(--bad);background:var(--bad-soft)}
+  .qhead{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .tag{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:5px;border:1px solid var(--line2);color:var(--muted)}
+  .lvl-easy{color:var(--ok);border-color:var(--ok)} .lvl-med{color:var(--warn);border-color:var(--warn)} .lvl-hard{color:var(--bad);border-color:var(--bad)}
+  .qtext{font-weight:600;margin:0 0 10px}
+  .opts{display:grid;gap:7px}
+  .opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;background:var(--paper)}
+  .opt:hover{border-color:var(--line2)}
+  .opt input{margin-top:4px;accent-color:var(--accent)}
+  .opt.o-ok{border-color:var(--ok);background:var(--ok-soft)}
+  .opt.o-bad{border-color:var(--bad);background:var(--bad-soft)}
+  .q input[type=text]{width:100%;font:16px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:10px 12px}
+  .mrow{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;margin:7px 0}
+  .mrow .ml{flex:1 1 160px;font-weight:500}
+  .mrow select{flex:1 1 180px;max-width:100%;font:15px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:8px 10px}
+  .mrow select.s-ok{border-color:var(--ok)} .mrow select.s-bad{border-color:var(--bad)}
+  .explain{margin-top:10px;padding:10px 12px;border:1px dashed var(--line2);border-radius:8px;color:var(--muted);font-size:15px}
+  .btn{font:600 14px/1 var(--body);color:var(--accent-ink);background:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:10px 16px;cursor:pointer}
+  .btn.ghost{color:var(--ink);background:var(--card);border-color:var(--line2)}
+  .btn.small{padding:8px 12px;font-size:13px}
+  .q .btn{margin-top:12px}
+  .testbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+  .score{margin-left:auto;font-family:var(--mono);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .score b{color:var(--accent);font-size:17px}
+  .bar{height:6px;border-radius:99px;background:var(--card2);overflow:hidden;margin:12px 0 4px}
+  .bar>div{height:100%;width:0;background:var(--accent);transition:width .4s}
+  .empty{color:var(--faint);text-align:center;padding:18px;font-family:var(--mono);font-size:13px}
+
+  /* Карточки */
+  .deckmeta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin-bottom:10px}
+  .deckmeta b{color:var(--ok)}
+  .deck{position:relative;height:250px;perspective:1200px}
+  .fc{position:absolute;inset:0;cursor:pointer;border:none;background:none;padding:0;font:inherit;color:inherit;width:100%}
+  .fc .inner{position:relative;width:100%;height:100%;transition:transform .5s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d}
+  .fc.flipped .inner{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:26px;border-radius:10px;border:1px solid var(--line2);background:var(--card)}
+  .face.front{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+  .face.front .t{font-family:var(--display);font-weight:500;font-size:clamp(18px,4.6vw,23px);line-height:1.25}
+  .face.back{transform:rotateY(180deg);border-color:var(--accent);background:var(--card2)}
+  .face.back .t{font-size:16px}
+  .face .hint{position:absolute;bottom:12px;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.06em}
+  .learned-tag{position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:11px;color:var(--ok);border:1px solid var(--ok);border-radius:5px;padding:1px 6px}
+  .deckbar{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .nav{width:42px;height:42px;border-radius:50%;border:1px solid var(--line2);background:var(--card);color:var(--ink);font-size:18px;cursor:pointer}
+  .counter{font-family:var(--mono);font-size:14px;color:var(--muted);min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+
+  /* Определения */
+  .terms{display:grid;gap:8px;margin:10px 0 4px}
+  .term{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--paper)}
+  .term b{color:var(--accent)}
+  details{border:1px solid var(--line);border-radius:8px;margin:8px 0;background:var(--paper)}
+  summary{cursor:pointer;padding:12px 14px;font-weight:600;list-style:none;display:flex;gap:10px}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"+";font-family:var(--mono);color:var(--margin);font-weight:700}
+  details[open] summary::before{content:"−"}
+  details .ans{padding:0 14px 12px 34px;color:var(--muted)}
+
+  .cheat li{margin:7px 0}
+  footer{margin-top:34px;padding-top:14px;border-top:1px solid var(--line);text-align:center;font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+  footer a{color:var(--accent);text-decoration:none}
+
+  @media (prefers-reduced-motion: reduce){.fc .inner,.bar>div{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="top">
+      <span class="eyebrow" id="eyebrow">тренажёр к паре</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <a class="author" id="author" href="#" target="_blank" rel="noopener">автор <b></b></a>
+        <button class="themebtn" id="themeBtn" type="button">Тема</button>
+      </div>
+    </div>
+    <h1 id="pageTitle"></h1>
+    <p class="sub" id="pageSub"></p>
+    <div class="meta" id="pageMeta"></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="konspekt" type="button">Конспект</button>
+    <button class="tab" role="tab" data-tab="tests" type="button">Тесты</button>
+    <button class="tab" role="tab" data-tab="cards" type="button">Карточки</button>
+    <button class="tab" role="tab" data-tab="oral" type="button">Определения</button>
+    <button class="tab" role="tab" data-tab="cheat" type="button">Шпаргалка</button>
+  </nav>
+  <div class="topics" id="topics"></div>
+
+  <main>
+    <div class="panel" id="p-konspekt"></div>
+    <div class="panel" id="p-tests" hidden>
+      <div class="controls">
+        <span><span class="ctl-label">режим</span><span class="seg" id="modeSeg"></span></span>
+        <span><span class="ctl-label">сложность</span><span class="seg" id="levelSeg"></span></span>
+      </div>
+      <div id="qlist"></div>
+      <div class="bar"><div id="bar"></div></div>
+      <div class="testbar">
+        <button class="btn" id="checkAll" type="button">Проверить всё</button>
+        <button class="btn ghost" id="resetAll" type="button">Заново</button>
+        <span class="score" id="score"></span>
+      </div>
+    </div>
+    <div class="panel" id="p-cards" hidden>
+      <div class="deckmeta"><span>Нажми на карточку, чтобы перевернуть.</span><span id="learned"></span></div>
+      <div class="deck" id="deck"></div>
+      <div class="deckbar">
+        <button class="nav" id="prev" type="button" aria-label="Предыдущая">‹</button>
+        <button class="btn ghost small" id="again" type="button">Повторить</button>
+        <span class="counter" id="counter"></span>
+        <button class="btn small" id="know" type="button">Знаю</button>
+        <button class="nav" id="next" type="button" aria-label="Следующая">›</button>
+      </div>
+      <div style="text-align:center;margin-top:10px"><button class="btn ghost small" id="shuffle" type="button">Перемешать</button></div>
+    </div>
+    <div class="panel" id="p-oral" hidden></div>
+    <div class="panel" id="p-cheat" hidden></div>
+  </main>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* ===== ПОДПИСЬ (не менять) ===== */
+const AUTHOR = { nick: "@ainaynandonikai", url: "https://github.com/ainaynandonikai" };
+
+/* ===== ДАННЫЕ - меняется только этот объект ===== */
+const DATA = {
+  title: "Матрицы и определители",
+  subtitle: "Матрицы, действия с ними, определители и их свойства, обратная матрица - формулировки из лекции, аналогии и задачи из ТР №1.",
+  meta: ["Высшая математика", "Лекция 1", "6 тем", "примеры из лекции и ТР №1, вариант 16"],
+  topics: [
+    {
+      id: "osn", name: "Основные понятия",
+      konspekt: `
+        <h3>Аналогия: зал кинотеатра</h3>
+        <p>Матрица - это <b>таблица чисел</b>, как зал кинотеатра: есть ряды и места. Ряды - это <b>строки</b>, места - <b>столбцы</b>. Билет «ряд 2, место 3» - это элемент a₂₃. <mark>Сначала всегда строка, потом столбец.</mark></p>
+        <h3>Матрица</h3>
+        <p><b>Матрицей</b> размера m×n называется прямоугольная таблица чисел, содержащая m строк и n столбцов</p>
+        <pre>    ( a₁₁  a₁₂  …  a₁ₙ )
+A = ( a₂₁  a₂₂  …  a₂ₙ )
+    (  …    …   …   …  )
+    ( aₘ₁  aₘ₂  …  aₘₙ )</pre>
+        <p>Каждый элемент матрицы aᵢₖ имеет два индекса: i - номер строки и k - номер столбца. Например, в матрице</p>
+        <pre>    (  5  −7   4   3 )
+A = (  2   0   8   1 )
+    ( −3  −4   9   6 )
+
+размера 3×4:  a₁₁ = 5,  a₂₃ = 8,  a₃₄ = 6</pre>
+        <p>Часто используется краткая запись матрицы: A = (aᵢₖ)ₘ,ₙ.</p>
+        <h3>Виды матриц</h3>
+        <p>В примерах строки матрицы разделены точкой с запятой: (1 0; 0 1) - это две строки, (1 0) и (0 1).</p>
+        <div class="tablebox"><table>
+          <tr><th>Вид</th><th>Определение из лекции</th><th>Пример</th></tr>
+          <tr><td>Квадратная n-го порядка</td><td>состоит из n строк и n столбцов</td><td>(1 2; 3 4) - 2-го порядка</td></tr>
+          <tr><td>Матрица-строка</td><td>матрица размера 1×n</td><td>(2 −1 7)</td></tr>
+          <tr><td>Матрица-столбец</td><td>матрица размера m×1</td><td>(4; 0; −3)</td></tr>
+          <tr><td>Нулевая O</td><td>матрица заданного размера, все элементы которой равны 0</td><td>(0 0; 0 0)</td></tr>
+          <tr><td>Единичная E</td><td>квадратная матрица, элементы главной диагонали которой равны 1, а все остальные элементы равны 0</td><td>(1 0; 0 1)</td></tr>
+        </table></div>
+        <p>Главная диагональ - элементы a₁₁, a₂₂, …, aₙₙ: из левого верхнего угла в правый нижний. Можно говорить о единичных матрицах любого порядка.</p>
+        <pre>ТР №1, вариант 16 - квадратная матрица 3-го порядка:
+
+    ( −1   1   1 )
+A = (  1   2   5 )
+    (  1   0  −8 )
+
+a₁₁ = −1   a₂₃ = 5   a₃₁ = 1   a₃₃ = −8</pre>
+        <h3>Транспонированная матрица</h3>
+        <p>Аналогия: в расписании дни недели шли строками, а таблицу развернули так, что дни пошли столбцами. Числа те же, поменялось только направление.</p>
+        <p><b>Транспонированной</b> для матрицы A называется матрица Aᵀ, строки которой являются столбцами матрицы A, а столбцы - строками A. Например, если</p>
+        <pre>    ( 5  −9   4 )             (  5   3 )
+A = ( 3   2  −1 ),  то   Aᵀ = ( −9   2 )
+                              (  4  −1 )</pre>
+        <p>Матрица размера 2×3 стала матрицей размера 3×2.</p>
+        <pre>ТР №1, вариант 16, матрица C:
+
+    ( −1  −2   2 )         ( −1   2  −6 )
+C = (  2   6   1 )    Cᵀ = ( −2   6   1 )
+    ( −6   1  −2 )         (  2   1  −2 )</pre>
+        <h3>Равные матрицы</h3>
+        <p>Матрицы A = (aᵢₖ)ₘ,ₙ и B = (bᵢₖ)ₘ,ₙ называются <b>равными</b>, если aᵢₖ = bᵢₖ, i = 1, …, m, k = 1, …, n.</p>
+        <p>В определении обе матрицы одного размера m×n. Поэтому строка (1 2) и столбец (1; 2) <mark>не равны</mark>.</p>
+        <div class="callout"><b>Главное:</b> в записи aᵢₖ индекс i - номер строки, k - номер столбца. У Aᵀ строки - это столбцы A.</div>`,
+      terms: [
+        { term: "Матрица размера m×n", def: "прямоугольная таблица чисел, содержащая m строк и n столбцов." },
+        { term: "Элемент aᵢₖ", def: "элемент матрицы с двумя индексами: i - номер строки и k - номер столбца." },
+        { term: "Краткая запись матрицы", def: "A = (aᵢₖ)ₘ,ₙ." },
+        { term: "Квадратная матрица n-го порядка", def: "матрица, которая состоит из n строк и n столбцов." },
+        { term: "Матрица-строка", def: "матрица размера 1×n." },
+        { term: "Матрица-столбец", def: "матрица размера m×1." },
+        { term: "Нулевая матрица O", def: "матрица заданного размера, все элементы которой равны 0." },
+        { term: "Единичная матрица E", def: "квадратная матрица, элементы главной диагонали которой равны 1, а все остальные элементы равны 0." },
+        { term: "Транспонированная матрица Aᵀ", def: "матрица, строки которой являются столбцами матрицы A, а столбцы - строками A." },
+        { term: "Равные матрицы", def: "матрицы A = (aᵢₖ)ₘ,ₙ и B = (bᵢₖ)ₘ,ₙ, у которых aᵢₖ = bᵢₖ, i = 1, …, m, k = 1, …, n." }
+      ],
+      cards: [
+        { front: "Что такое матрица размера m×n?", back: "Прямоугольная таблица чисел, содержащая m строк и n столбцов." },
+        { front: "Что означают индексы в aᵢₖ?", back: "i - номер строки, k - номер столбца. Как «ряд, потом место»." },
+        { front: "Квадратная матрица n-го порядка", back: "Состоит из n строк и n столбцов." },
+        { front: "Матрица-строка и матрица-столбец", back: "Строка - размер 1×n, столбец - размер m×1." },
+        { front: "Единичная матрица E", back: "Квадратная, элементы главной диагонали равны 1, все остальные равны 0." },
+        { front: "Транспонированная Aᵀ", back: "Строки Aᵀ - это столбцы A, а столбцы - строки A." },
+        { front: "Лекция: в A = (5 −7 4 3; 2 0 8 1; −3 −4 9 6) найди a₂₃", back: "a₂₃ = 8. Ещё a₁₁ = 5, a₃₄ = 6." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Какой размер у матрицы, в которой 2 строки и 3 столбца?",
+          options: [{ t: "2×3", correct: true }, { t: "3×2", correct: false }, { t: "6", correct: false }, { t: "2×2", correct: false }],
+          explain: "Размер m×n: m строк и n столбцов. Здесь 2×3." },
+        { type: "fill", level: "easy", q: "ТР №1, вариант 16: A = (−1 1 1; 1 2 5; 1 0 −8), строки разделены «;». Элемент a₂₃ = ___",
+          answers: ["5"], explain: "a₂₃ - это 2-я строка (1 2 5) и 3-й столбец: 5." },
+        { type: "truefalse", level: "easy", q: "Единичная матрица всегда квадратная.", answer: true,
+          explain: "По лекции единичной называется квадратная матрица, элементы главной диагонали которой равны 1, а все остальные элементы равны 0." },
+        { type: "single", level: "med", q: "ТР №1, вариант 16: C = (−1 −2 2; 2 6 1; −6 1 −2). Какой будет первая строка Cᵀ?",
+          options: [{ t: "(−1  2  −6)", correct: true }, { t: "(−1  −2  2)", correct: false }, { t: "(2  1  −2)", correct: false }, { t: "(−6  1  −2)", correct: false }],
+          explain: "Строки Cᵀ - это столбцы C. Первая строка Cᵀ - первый столбец C: −1, 2, −6." },
+        { type: "multiple", level: "med", q: "Лекция: A = (5 −7 4 3; 2 0 8 1; −3 −4 9 6). Что верно?",
+          options: [{ t: "размер 3×4", correct: true }, { t: "a₂₃ = 8", correct: true }, { t: "a₃₄ = 6", correct: true }, { t: "a₃₂ = 9", correct: false }, { t: "матрица квадратная", correct: false }],
+          explain: "3 строки и 4 столбца - размер 3×4, матрица не квадратная. a₃₂ - 3-я строка, 2-й столбец: −4, а 9 - это a₃₃." },
+        { type: "match", level: "med", q: "Сопоставь вид матрицы и определение из лекции.",
+          pairs: [{ left: "Матрица-строка", right: "размер 1×n" }, { left: "Матрица-столбец", right: "размер m×1" }, { left: "Нулевая", right: "все элементы равны 0" }, { left: "Единичная", right: "на главной диагонали 1, остальные элементы 0" }],
+          explain: "Определения из раздела 1 лекции «Основные понятия»." },
+        { type: "truefalse", level: "hard", q: "Строка (1 2) и столбец (1; 2) из тех же чисел - равные матрицы.", answer: false,
+          explain: "Равными называются матрицы A = (aᵢₖ)ₘ,ₙ и B = (bᵢₖ)ₘ,ₙ одного размера с равными элементами. Здесь размеры 1×2 и 2×1 - не равны. Зато одна - транспонированная другая." },
+        { type: "single", level: "hard", q: "Лекция: A = (5 −9 4; 3 2 −1). Какой размер у Aᵀ и какой элемент стоит в её 3-й строке и 1-м столбце?",
+          options: [{ t: "3×2, элемент 4", correct: true }, { t: "2×3, элемент 4", correct: false }, { t: "3×2, элемент −1", correct: false }, { t: "3×2, элемент −9", correct: false }],
+          explain: "Aᵀ = (5 3; −9 2; 4 −1): 3 строки и 2 столбца. 3-я строка Aᵀ - это 3-й столбец A (4, −1), её первый элемент 4." }
+      ],
+      oral: [
+        { q: "Дайте определение матрицы.", a: "Матрицей размера m×n называется прямоугольная таблица чисел, содержащая m строк и n столбцов. Каждый элемент матрицы aᵢₖ имеет два индекса: i - номер строки и k - номер столбца." },
+        { q: "Дайте определение единичной матрицы.", a: "Единичной называется квадратная матрица, элементы главной диагонали которой равны 1, а все остальные элементы равны 0. Можно говорить о единичных матрицах любого порядка." },
+        { q: "Какая матрица называется транспонированной?", a: "Транспонированной для матрицы A называется матрица Aᵀ, строки которой являются столбцами матрицы A, а столбцы - строками A." },
+        { q: "Какие матрицы называются равными?", a: "Матрицы A = (aᵢₖ)ₘ,ₙ и B = (bᵢₖ)ₘ,ₙ называются равными, если aᵢₖ = bᵢₖ, i = 1, …, m, k = 1, …, n." }
+      ],
+      cheat: [
+        "<b>aᵢₖ</b>: i - номер строки, k - номер столбца.",
+        "<b>Квадратная n-го порядка</b> - n строк и n столбцов; <b>строка</b> 1×n, <b>столбец</b> m×1.",
+        "<b>O</b> - все элементы 0; <b>E</b> - на главной диагонали 1, остальные 0.",
+        "<b>Aᵀ</b> - строки A становятся столбцами."
+      ]
+    },
+    {
+      id: "lin", name: "Линейные операции",
+      konspekt: `
+        <h3>Сумма матриц</h3>
+        <p>Аналогия: две таблицы оценок одного формата - за сентябрь и за октябрь. Чтобы получить сумму, складываем <b>клетку с клеткой</b>.</p>
+        <p><b>Суммой</b> матриц A = (aᵢₖ)ₘ,ₙ и B = (bᵢₖ)ₘ,ₙ называется матрица A + B = (aᵢₖ + bᵢₖ)ₘ,ₙ.</p>
+        <p>Другими словами, для сложения матриц надо сложить элементы матриц, стоящие на одних и тех же местах. Складываются матрицы <mark>только одинакового размера</mark>.</p>
+        <h3>Произведение матрицы на число</h3>
+        <p>Аналогия: все цены в прайсе подняли в 2 раза - каждую цену умножили на 2.</p>
+        <p><b>Произведением</b> матрицы A = (aᵢₖ)ₘ,ₙ на число λ называется матрица λA = (λaᵢₖ)ₘ,ₙ.</p>
+        <p>Другими словами, для умножения матрицы на число надо каждый элемент матрицы умножить на это число. Любую матрицу можно умножить на любое число.</p>
+        <h3>Свойства</h3>
+        <p>Для любых матриц одинакового размера и любых чисел λ и μ выполняются свойства:</p>
+        <pre>1) A + B = B + A
+2) A + 0 = A
+3) A + (B + C) = (A + B) + C
+4) λ(μA) = (λμ)A
+5) λ(A + B) = λA + λB
+6) (λ + μ)A = λA + μA</pre>
+        <h3>Пример 1 из лекции</h3>
+        <p>Даны матрицы A и B. Найти матрицу C = 2A − 3B + Aᵀ.</p>
+        <pre>A = ( 2  1 )     B = ( −1  4 )
+    ( 3  0 )         (  5  2 )
+
+C = 2A − 3B + Aᵀ =
+
+  ( 4  2 )   ( −3  12 )   ( 2  3 )   (  9  −7 )
+= ( 6  0 ) − ( 15   6 ) + ( 1  0 ) = ( −8  −6 )</pre>
+        <h3>ТР №1, вариант 16, задача 1.1</h3>
+        <p>Вычислить 4A + 2C − 3Cᵀ. Сначала каждое слагаемое отдельно (Cᵀ - в теме «Основные понятия»), потом складываем по местам.</p>
+        <pre>     ( −4   4    4 )
+4A = (  4   8   20 )
+     (  4   0  −32 )
+
+     ( −2  −4   4 )
+2C = (  4  12   2 )
+     (−12   2  −4 )
+
+      ( −3   6  −18 )
+3Cᵀ = ( −6  18    3 )
+      (  6   3   −6 )
+
+Элемент (1,1): −4 + (−2) − (−3) = −3
+Элемент (2,3): 20 + 2 − 3 = 19
+Элемент (3,3): −32 + (−4) − (−6) = −30
+
+                ( −3   −6   26 )
+4A + 2C − 3Cᵀ = ( 14    2   19 )
+                (−14   −1  −30 )</pre>
+        <div class="callout"><b>Главное:</b> складываются матрицы только одинакового размера - элементы на одних и тех же местах. На число умножается каждый элемент, и любую матрицу можно умножить на любое число.</div>`,
+      terms: [
+        { term: "Сумма матриц", def: "для матриц A = (aᵢₖ)ₘ,ₙ и B = (bᵢₖ)ₘ,ₙ - матрица A + B = (aᵢₖ + bᵢₖ)ₘ,ₙ." },
+        { term: "Произведение матрицы на число", def: "для матрицы A = (aᵢₖ)ₘ,ₙ и числа λ - матрица λA = (λaᵢₖ)ₘ,ₙ." }
+      ],
+      cards: [
+        { front: "Как сложить две матрицы?", back: "Сложить элементы, стоящие на одних и тех же местах. Складываются только матрицы одинакового размера." },
+        { front: "Как умножить матрицу на число?", back: "Каждый элемент матрицы умножить на это число. Любую матрицу можно умножить на любое число." },
+        { front: "λ(A + B) = ?", back: "λA + λB." },
+        { front: "(λ + μ)A = ?", back: "λA + μA." },
+        { front: "Лекция, пример 1: C = 2A − 3B + Aᵀ", back: "(9 −7; −8 −6)." },
+        { front: "ТР, вариант 16: 4A + 2C − 3Cᵀ", back: "(−3 −6 26; 14 2 19; −14 −1 −30)." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Можно ли сложить матрицу 2×3 и матрицу 3×2?",
+          options: [{ t: "Нет, размеры разные", correct: true }, { t: "Да, получится 2×2", correct: false }, { t: "Да, получится 3×3", correct: false }, { t: "Да, если потом транспонировать", correct: false }],
+          explain: "Складываются матрицы только одинакового размера." },
+        { type: "truefalse", level: "easy", q: "Любую матрицу можно умножить на любое число.", answer: true,
+          explain: "Так сказано в лекции: для умножения матрицы на число надо каждый элемент умножить на это число, ограничений на размер нет." },
+        { type: "fill", level: "med", q: "Лекция, пример 1: A = (2 1; 3 0), B = (−1 4; 5 2). Элемент (1,1) матрицы C = 2A − 3B + Aᵀ равен ___",
+          answers: ["9"], explain: "2·2 − 3·(−1) + 2 = 4 + 3 + 2 = 9. У Aᵀ элемент (1,1) тот же, что у A." },
+        { type: "fill", level: "med", q: "ТР №1, вариант 16: элемент в 1-й строке и 1-м столбце матрицы 4A + 2C − 3Cᵀ равен ___",
+          answers: ["-3", "−3"], explain: "4·(−1) + 2·(−1) − 3·(−1) = −4 − 2 + 3 = −3." },
+        { type: "match", level: "med", q: "Сопоставь левую и правую части свойств линейных операций.",
+          pairs: [{ left: "A + B", right: "B + A" }, { left: "λ(A + B)", right: "λA + λB" }, { left: "(λ + μ)A", right: "λA + μA" }, { left: "λ(μA)", right: "(λμ)A" }],
+          explain: "Свойства 1, 5, 6 и 4 из лекции." },
+        { type: "multiple", level: "med", q: "A - матрица размера 2×3. Какие выражения имеют смысл?",
+          options: [{ t: "5A", correct: true }, { t: "A + O, где O - нулевая 2×3", correct: true }, { t: "A − 2A", correct: true }, { t: "A + Aᵀ", correct: false }, { t: "A + E", correct: false }],
+          explain: "На число можно умножить любую матрицу. Складываются только матрицы одинакового размера: Aᵀ имеет размер 3×2, а E - квадратная." },
+        { type: "single", level: "hard", q: "Лекция, пример 1: A = (2 1; 3 0), B = (−1 4; 5 2). Элемент (2,1) матрицы 2A − 3B + Aᵀ равен…",
+          options: [{ t: "−8", correct: true }, { t: "−6", correct: false }, { t: "−9", correct: false }, { t: "8", correct: false }],
+          explain: "2·3 − 3·5 + 1 = −8. Элемент (2,1) у Aᵀ - это a₁₂ = 1. Ответ −6 получится, если забыть транспонировать и взять a₂₁ = 3." },
+        { type: "fill", level: "hard", q: "ТР №1, вариант 16: элемент (1,3) матрицы 4A + 2C − 3Cᵀ равен ___",
+          answers: ["26"], explain: "4·1 + 2·2 − 3·(−6) = 4 + 4 + 18 = 26. Элемент (1,3) у Cᵀ - это элемент (3,1) у C, он равен −6." }
+      ],
+      oral: [
+        { q: "Дайте определение суммы матриц.", a: "Суммой матриц A = (aᵢₖ)ₘ,ₙ и B = (bᵢₖ)ₘ,ₙ называется матрица A + B = (aᵢₖ + bᵢₖ)ₘ,ₙ. Другими словами, для сложения матриц надо сложить элементы матриц, стоящие на одних и тех же местах. Складываются матрицы только одинакового размера." },
+        { q: "Дайте определение произведения матрицы на число.", a: "Произведением матрицы A = (aᵢₖ)ₘ,ₙ на число λ называется матрица λA = (λaᵢₖ)ₘ,ₙ. Другими словами, для умножения матрицы на число надо каждый элемент матрицы умножить на это число. Любую матрицу можно умножить на любое число." },
+        { q: "Какими свойствами обладают линейные операции над матрицами?", a: "Для любых матриц одинакового размера и любых чисел λ и μ выполняются свойства: A + B = B + A; A + 0 = A; A + (B + C) = (A + B) + C; λ(μA) = (λμ)A; λ(A + B) = λA + λB; (λ + μ)A = λA + μA." }
+      ],
+      cheat: [
+        "<b>A + B</b> - элементы на одних и тех же местах; только одинаковый размер.",
+        "<b>λA</b> - каждый элемент на λ; любую матрицу на любое число.",
+        "Свойства: A + B = B + A, λ(A + B) = λA + λB, (λ + μ)A = λA + μA."
+      ]
+    },
+    {
+      id: "mul", name: "Умножение матриц",
+      konspekt: `
+        <h3>Правило «строка на столбец»</h3>
+        <p>Матрицы умножаются по правилу «строка на столбец».</p>
+        <p>Аналогия: чек в магазине. Купил 2 хлеба и 3 пакета молока - это строка (2 3). Хлеб стоит 40 ₽, молоко 90 ₽ - это столбец цен. Сумма к оплате: 2·40 + 3·90 = 350 ₽. Попарно перемножили и сложили - это и есть строка на столбец.</p>
+        <h3>Определение</h3>
+        <p><b>Произведением</b> матрицы A = (aᵢₖ)ₘ,ₚ на матрицу B = (bᵢₖ)ₚ,ₙ называется матрица C размера m×n с элементами</p>
+        <pre>cᵢₖ = Σ aᵢⱼ·bⱼₖ   (сумма по j от 1 до p)
+    = aᵢ₁b₁ₖ + aᵢ₂b₂ₖ + … + aᵢₚbₚₖ,
+
+i = 1, 2, …, m,   k = 1, 2, …, n</pre>
+        <p>Другими словами, для получения элемента, стоящего в i-той строке и k-том столбце матрицы-произведения, следует вычислить сумму произведений элементов i-той строки матрицы A на k-тый столбец матрицы B.</p>
+        <p>В самом определении произведения матриц заложено, что число столбцов первой матрицы должно совпадать с числом строк второй. Это <b>условие согласования</b> матриц при умножении. Если оно нарушено, то матрицы перемножить нельзя.</p>
+        <pre>A (m×p) · B (p×n) = C (m×n)</pre>
+        <h3>Пример 2 из лекции</h3>
+        <pre>A = ( 2  4 )     B = ( 5  −1  2 )
+    ( 1  3 )         ( 2   0  6 )
+
+A·B = ( 2·5 + 4·2   2·(−1) + 4·0   2·2 + 4·6 )
+      ( 1·5 + 3·2   1·(−1) + 3·0   1·2 + 3·6 )
+
+    = ( 18  −2  28 )
+      ( 11  −1  20 )</pre>
+        <p>Заметим, что вполне возможна ситуация, когда A·B существует, а B·A нет. Именно так происходит в примере 2: у B три столбца, а у A две строки. Кроме того, когда существуют оба произведения, то чаще всего они не равны, т.е., вообще говоря, <mark>A·B ≠ B·A</mark>.</p>
+        <p>Аналогия: надеть носки, потом ботинки - не то же самое, что наоборот. Порядок множителей важен.</p>
+        <h3>ТР №1, вариант 16, задача 1.2</h3>
+        <pre>(AC)₁₁ = 1-я строка A · 1-й столбец C
+       = (−1)·(−1) + 1·2 + 1·(−6)
+       = 1 + 2 − 6 = −3
+(AC)₁₂ = (−1)·(−2) + 1·6 + 1·1 = 9
+(AC)₂₁ = 1·(−1) + 2·2 + 5·(−6) = −27
+
+     ( −3    9   −3 )
+AC = (−27   15   −6 )
+     ( 47  −10   18 )
+
+     (  1   −5  −27 )
+CA = (  5   14   24 )
+     (  5   −4   15 )
+
+(CA)₁₁ = (−1)·(−1) + (−2)·1 + 2·1 = 1,
+а (AC)₁₁ = −3  →  AC ≠ CA</pre>
+        <h3>Свойства</h3>
+        <p>Если A, B и C - квадратные матрицы одного порядка, то справедливы равенства:</p>
+        <pre>1) A·(B·C) = (A·B)·C
+2) A·(B + C) = A·B + A·C
+3) (A + B)·C = A·C + B·C
+4) A·E = E·A = A</pre>
+        <div class="callout"><b>Главное:</b> умножаем «строка на столбец», и только если число столбцов первой матрицы совпадает с числом строк второй. Вообще говоря, A·B ≠ B·A.</div>`,
+      terms: [
+        { term: "Произведение матриц", def: "для A = (aᵢₖ)ₘ,ₚ и B = (bᵢₖ)ₚ,ₙ - матрица C размера m×n с элементами cᵢₖ = aᵢ₁b₁ₖ + aᵢ₂b₂ₖ + … + aᵢₚbₚₖ." },
+        { term: "Условие согласования", def: "число столбцов первой матрицы должно совпадать с числом строк второй; если оно нарушено, то матрицы перемножить нельзя." }
+      ],
+      cards: [
+        { front: "По какому правилу умножаются матрицы?", back: "«Строка на столбец»." },
+        { front: "Как найти cᵢₖ в произведении?", back: "Сумма произведений элементов i-той строки A на k-тый столбец B." },
+        { front: "Условие согласования", back: "Число столбцов первой матрицы совпадает с числом строк второй." },
+        { front: "Размер A(m×p)·B(p×n)", back: "m×n." },
+        { front: "Верно ли A·B = B·A?", back: "Вообще говоря, нет. Бывает даже, что A·B существует, а B·A нет (пример 2 лекции)." },
+        { front: "A·E = ?", back: "A·E = E·A = A." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "По какому правилу умножаются матрицы?",
+          options: [{ t: "«строка на столбец»", correct: true }, { t: "поэлементно, на одних и тех же местах", correct: false }, { t: "«столбец на строку»", correct: false }, { t: "по главной диагонали", correct: false }],
+          explain: "В лекции: матрицы умножаются по правилу «строка на столбец». Поэлементно - это сложение." },
+        { type: "fill", level: "easy", q: "A имеет размер 2×3, B - размер 3×4. Размер произведения A·B: ___",
+          answers: ["2×4", "2x4", "2х4", "2 × 4", "2 x 4", "2 х 4", "2*4", "2 на 4"],
+          explain: "A (m×p)·B (p×n) = C (m×n): p = 3 совпало, результат 2×4." },
+        { type: "truefalse", level: "med", q: "Для любых двух квадратных матриц одного порядка A·B = B·A.", answer: false,
+          explain: "Вообще говоря, A·B ≠ B·A. В ТР, вариант 16: (AC)₁₁ = −3, а (CA)₁₁ = 1." },
+        { type: "fill", level: "med", q: "Лекция, пример 2: A = (2 4; 1 3), B = (5 −1 2; 2 0 6). Элемент c₁₃ произведения A·B равен ___",
+          answers: ["28"], explain: "1-я строка A (2 4) на 3-й столбец B (2; 6): 2·2 + 4·6 = 4 + 24 = 28." },
+        { type: "single", level: "med", q: "ТР №1, вариант 16: A = (−1 1 1; 1 2 5; 1 0 −8), C = (−1 −2 2; 2 6 1; −6 1 −2). Чему равен элемент (AC)₁₁?",
+          options: [{ t: "−3", correct: true }, { t: "1", correct: false }, { t: "−1", correct: false }, { t: "6", correct: false }],
+          explain: "1-я строка A на 1-й столбец C: (−1)·(−1) + 1·2 + 1·(−6) = 1 + 2 − 6 = −3. Ответ 1 - это (CA)₁₁, перепутан порядок." },
+        { type: "match", level: "med", q: "A, B, C - квадратные матрицы одного порядка. Сопоставь левую и правую части равенств.",
+          pairs: [{ left: "A·(B·C)", right: "(A·B)·C" }, { left: "A·(B + C)", right: "A·B + A·C" }, { left: "(A + B)·C", right: "A·C + B·C" }, { left: "A·E", right: "A" }],
+          explain: "Свойства 1-4 умножения матриц из лекции." },
+        { type: "multiple", level: "hard", q: "A имеет размер 3×2, B - размер 2×3. Какие выражения имеют смысл?",
+          options: [{ t: "A·B", correct: true }, { t: "B·A", correct: true }, { t: "A·Aᵀ", correct: true }, { t: "A + B", correct: false }, { t: "A·A", correct: false }],
+          explain: "A·B: 3×2 · 2×3 → 3×3. B·A: 2×3 · 3×2 → 2×2. A·Aᵀ: 3×2 · 2×3 → 3×3. A + B - размеры разные. A·A: у A 2 столбца, а строк 3 - условие согласования нарушено." },
+        { type: "fill", level: "hard", q: "ТР №1, вариант 16: элемент (CA)₁₃ - 1-я строка C на 3-й столбец A - равен ___",
+          answers: ["-27", "−27"], explain: "1-я строка C (−1 −2 2), 3-й столбец A (1; 5; −8): (−1)·1 + (−2)·5 + 2·(−8) = −1 − 10 − 16 = −27." }
+      ],
+      oral: [
+        { q: "Дайте определение произведения матриц.", a: "Произведением матрицы A = (aᵢₖ)ₘ,ₚ на матрицу B = (bᵢₖ)ₚ,ₙ называется матрица C размера m×n с элементами cᵢₖ = Σ aᵢⱼ·bⱼₖ (j от 1 до p), i = 1, 2, …, m, k = 1, 2, …, n. Другими словами, для получения элемента, стоящего в i-той строке и k-том столбце матрицы-произведения, следует вычислить сумму произведений элементов i-той строки матрицы A на k-тый столбец матрицы B." },
+        { q: "Что называется условием согласования матриц при умножении?", a: "В самом определении произведения матриц заложено, что число столбцов первой матрицы должно совпадать с числом строк второй. Это условие согласования матриц при умножении. Если оно нарушено, то матрицы перемножить нельзя." },
+        { q: "Равны ли произведения A·B и B·A?", a: "Вполне возможна ситуация, когда A·B существует, а B·A нет. Кроме того, когда существуют оба произведения, то чаще всего они не равны, т.е., вообще говоря, A·B ≠ B·A." },
+        { q: "Какими свойствами обладает умножение матриц?", a: "Если A, B и C - квадратные матрицы одного порядка, то справедливы равенства: A·(B·C) = (A·B)·C; A·(B + C) = A·B + A·C; (A + B)·C = A·C + B·C; A·E = E·A = A." }
+      ],
+      cheat: [
+        "<b>Строка на столбец:</b> cᵢₖ = aᵢ₁b₁ₖ + … + aᵢₚbₚₖ.",
+        "<b>Условие согласования:</b> столбцов у первой = строк у второй; (m×p)·(p×n) = m×n.",
+        "<b>A·B ≠ B·A</b> вообще говоря; A·E = E·A = A.",
+        "ТР, вариант 16: (AC)₁₁ = −3, (CA)₁₁ = 1 → AC ≠ CA."
+      ]
+    },
+    {
+      id: "det", name: "Определители",
+      konspekt: `
+        <h3>Что такое определитель</h3>
+        <p>Аналогия: за семестр у тебя много оценок, а в зачётку идёт <b>одно число</b>. Определитель так же превращает всю квадратную таблицу в одно число.</p>
+        <p>Понятие определителя вводится <mark>только для квадратных матриц</mark>. Обозначение из лекции - Δ(A). Определитель пишут в вертикальных чертах, матрицу - в круглых скобках.</p>
+        <h3>Определитель 2-го порядка</h3>
+        <p><b>Определителем 2-го порядка</b> матрицы A называется число:</p>
+        <pre>       | a₁₁  a₁₂ |
+Δ(A) = | a₂₁  a₂₂ | = a₁₁a₂₂ − a₁₂a₂₁</pre>
+        <p>Проще: произведение главной диагонали минус произведение побочной.</p>
+        <pre>Пример 3 из лекции:
+
+| −11   4 |
+|   5  12 | = −11·12 − 4·5 = −152</pre>
+        <h3>Минор и алгебраическое дополнение</h3>
+        <p><b>Минором</b> элемента aᵢₖ называется определитель Mᵢₖ, составленный из элементов, оставшихся после вычеркивания из матрицы i-той строки и k-того столбца.</p>
+        <p><b>Алгебраическим дополнением</b> элемента aᵢₖ называется число Aᵢₖ = (−1)ⁱ⁺ᵏMᵢₖ.</p>
+        <p>Аналогия для знака: шахматная доска. На «белых» клетках дополнение равно минору, на «чёрных» - минору с обратным знаком.</p>
+        <pre>Знак (−1)ⁱ⁺ᵏ по местам:
++  −  +
+−  +  −
++  −  +
+
+Лекция: A = (3 −2 4; 5 1 0; 2 −1 7)
+M₁₂ = | 5  0 |
+      | 2  7 | = 5·7 − 0·2 = 35
+A₁₂ = (−1)¹⁺²·M₁₂ = −35</pre>
+        <h3>Определитель 3-го и n-го порядка</h3>
+        <p><b>Определителем 3-го порядка</b> (матрицы A) называется сумма произведений элементов первой строки матрицы на их алгебраические дополнения:</p>
+        <pre>Δ(A) = a₁₁A₁₁ + a₁₂A₁₂ + a₁₃A₁₃</pre>
+        <p>Далее индуктивно вводится понятие определителей более высоких порядков. <b>Определителем n-го порядка</b> называется сумма произведений элементов 1-ой строки на их алгебраические дополнения.</p>
+        <div class="callout"><b>Как считаем на практике:</b> это определение - для устного ответа. Сами определители 3-го порядка считаем <b>только по правилу Саррюса</b>, 4-го порядка - приведением к треугольному виду (тема «Свойства определителей»). Разложение по строке в решениях не используем.</div>
+        <h3>Правило Саррюса</h3>
+        <p>Аналогия: допиши справа первые два столбца - получится полоска, на которой видно шесть диагоналей по три числа. Три диагонали вниз-вправо идут со знаком «+», три диагонали вниз-влево - со знаком «−».</p>
+        <pre>| a  b  c | a  b
+| d  e  f | d  e
+| g  h  i | g  h
+
+«+» (вниз-вправо):  a·e·i,  b·f·g,  c·d·h
+«−» (вниз-влево):   c·e·g,  a·f·h,  b·d·i
+
+Δ = (a·e·i + b·f·g + c·d·h)
+  − (c·e·g + a·f·h + b·d·i)</pre>
+        <p>В тетради записываем компактно: матрица, строка «+»-произведений с суммой, строка «−»-произведений с суммой, разность.</p>
+        <h3>Пример из лекции - по Саррюсу</h3>
+        <pre>Δ(A) = | 3  −2  4 |
+       | 5   1  0 |
+       | 2  −1  7 |  =
+
+3·1·7 + (−2)·0·2 + 4·5·(−1) = 21 + 0 − 20 = 1
+4·1·2 + 3·0·(−1) + (−2)·5·7 = 8 + 0 − 70 = −62
+Δ(A) = 1 − (−62) = 63   (как в лекции)</pre>
+        <h3>ТР №1, вариант 16, задача 1.3</h3>
+        <pre>Δ(A) = | −1  1   1 |
+       |  1  2   5 |
+       |  1  0  −8 |  =
+
+(−1)·2·(−8) + 1·5·1 + 1·1·0 = 16 + 5 + 0 = 21
+1·2·1 + (−1)·5·0 + 1·1·(−8) = 2 + 0 − 8 = −6
+Δ(A) = 21 − (−6) = 27
+
+Δ(C) = | −1  −2   2 |
+       |  2   6   1 |
+       | −6   1  −2 |  =
+
+(−1)·6·(−2) + (−2)·1·(−6) + 2·2·1 = 12 + 12 + 4 = 28
+2·6·(−6) + (−1)·1·1 + (−2)·2·(−2) = −72 − 1 + 8 = −65
+Δ(C) = 28 − (−65) = 93</pre>
+        <div class="callout"><b>Главное:</b> Саррюс - это три «+»-произведения <b>минус</b> три «−»-произведения. Самая частая ошибка - посчитать только первую тройку и забыть вычесть вторую.</div>`,
+      terms: [
+        { term: "Определитель 2-го порядка", def: "число Δ(A) = a₁₁a₂₂ − a₁₂a₂₁ для квадратной матрицы A 2-го порядка." },
+        { term: "Минор Mᵢₖ", def: "определитель, составленный из элементов, оставшихся после вычеркивания из матрицы i-той строки и k-того столбца." },
+        { term: "Алгебраическое дополнение Aᵢₖ", def: "число Aᵢₖ = (−1)ⁱ⁺ᵏMᵢₖ." },
+        { term: "Определитель 3-го порядка", def: "сумма произведений элементов первой строки матрицы на их алгебраические дополнения." },
+        { term: "Определитель n-го порядка", def: "сумма произведений элементов 1-ой строки на их алгебраические дополнения." },
+        { term: "Правило Саррюса (способ счёта 3×3)", def: "сумма трёх произведений по главной диагонали и двум параллельным ей минус сумма трёх произведений по побочной диагонали и двум параллельным ей." }
+      ],
+      cards: [
+        { front: "Для каких матриц вводится определитель?", back: "Только для квадратных." },
+        { front: "Определитель 2-го порядка", back: "Δ(A) = a₁₁a₂₂ − a₁₂a₂₁." },
+        { front: "Минор Mᵢₖ", back: "Определитель из элементов, оставшихся после вычеркивания i-той строки и k-того столбца." },
+        { front: "Алгебраическое дополнение Aᵢₖ", back: "Aᵢₖ = (−1)ⁱ⁺ᵏMᵢₖ. Знаки шахматкой: + − +." },
+        { front: "Определитель 3-го порядка по определению", back: "Сумма произведений элементов первой строки на их алгебраические дополнения. Считаем - по Саррюсу." },
+        { front: "Саррюс: произведения со знаком «+»", back: "a·e·i, b·f·g, c·d·h - главная диагональ и две параллельные ей." },
+        { front: "Саррюс: произведения со знаком «−»", back: "c·e·g, a·f·h, b·d·i - побочная диагональ и две параллельные ей." },
+        { front: "ТР, вариант 16: Δ(A) и Δ(C)", back: "Δ(A) = 27, Δ(C) = 93." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Для каких матриц вводится понятие определителя?",
+          options: [{ t: "Только для квадратных", correct: true }, { t: "Для любых", correct: false }, { t: "Только для матриц-строк", correct: false }, { t: "Для матриц размера 2×3", correct: false }],
+          explain: "В лекции: понятие определителя вводится только для квадратных матриц." },
+        { type: "fill", level: "easy", q: "Лекция, пример 3: Δ(A) для A = (−11 4; 5 12) равен ___",
+          answers: ["-152", "−152"], explain: "a₁₁a₂₂ − a₁₂a₂₁ = −11·12 − 4·5 = −132 − 20 = −152." },
+        { type: "match", level: "med", q: "Сопоставь алгебраическое дополнение и его связь с минором: Aᵢₖ = (−1)ⁱ⁺ᵏMᵢₖ.",
+          pairs: [{ left: "A₁₁", right: "+M₁₁" }, { left: "A₁₂", right: "−M₁₂" }, { left: "A₂₂", right: "+M₂₂" }, { left: "A₂₃", right: "−M₂₃" }],
+          explain: "Сумма индексов чётная - знак «+», нечётная - «−»: 1 + 1 = 2, 1 + 2 = 3, 2 + 2 = 4, 2 + 3 = 5." },
+        { type: "fill", level: "med", q: "Лекция: A = (3 −2 4; 5 1 0; 2 −1 7). Алгебраическое дополнение A₁₂ = ___",
+          answers: ["-35", "−35"], explain: "Вычёркиваем 1-ю строку и 2-й столбец: M₁₂ = |5 0; 2 7| = 35. A₁₂ = (−1)¹⁺²·35 = −35." },
+        { type: "multiple", level: "med", q: "Какие произведения входят в правило Саррюса со знаком «+» для |a b c; d e f; g h i|?",
+          options: [{ t: "a·e·i", correct: true }, { t: "b·f·g", correct: true }, { t: "c·d·h", correct: true }, { t: "c·e·g", correct: false }, { t: "b·d·i", correct: false }],
+          explain: "«+»: главная диагональ a·e·i и две параллельные ей b·f·g, c·d·h. c·e·g и b·d·i идут со знаком «−»." },
+        { type: "single", level: "med", q: "Лекция: A = (3 −2 4; 5 1 0; 2 −1 7). По Саррюсу сумма «+»-произведений равна 1, сумма «−»-произведений равна −62. Чему равен Δ(A)?",
+          options: [{ t: "63", correct: true }, { t: "1", correct: false }, { t: "−61", correct: false }, { t: "−63", correct: false }],
+          explain: "Δ = 1 − (−62) = 63, как в лекции. Ответ 1 - частая ошибка: взята только первая тройка." },
+        { type: "fill", level: "hard", q: "ТР №1, вариант 16: определитель матрицы A = (−1 1 1; 1 2 5; 1 0 −8) равен ___",
+          answers: ["27"], explain: "По Саррюсу: (16 + 5 + 0) − (2 + 0 − 8) = 21 − (−6) = 27." },
+        { type: "fill", level: "hard", q: "ТР №1, вариант 16: определитель матрицы C = (−1 −2 2; 2 6 1; −6 1 −2) равен ___",
+          answers: ["93"], explain: "По Саррюсу: (12 + 12 + 4) − (−72 − 1 + 8) = 28 − (−65) = 93." }
+      ],
+      oral: [
+        { q: "Дайте определение определителя 2-го порядка.", a: "Определителем 2-го порядка матрицы A называется число: Δ(A) = a₁₁a₂₂ − a₁₂a₂₁." },
+        { q: "Дайте определение минора и алгебраического дополнения.", a: "Минором элемента aᵢₖ называется определитель Mᵢₖ, составленный из элементов, оставшихся после вычеркивания из матрицы i-той строки и k-того столбца. Алгебраическим дополнением элемента aᵢₖ называется число Aᵢₖ = (−1)ⁱ⁺ᵏMᵢₖ." },
+        { q: "Дайте определение определителя 3-го порядка.", a: "Определителем 3-го порядка (матрицы A) называется сумма произведений элементов первой строки матрицы на их алгебраические дополнения: Δ(A) = a₁₁A₁₁ + a₁₂A₁₂ + a₁₃A₁₃." }
+      ],
+      cheat: [
+        "Определитель - только для <b>квадратных</b> матриц.",
+        "<b>2-го порядка:</b> Δ(A) = a₁₁a₂₂ − a₁₂a₂₁.",
+        "<b>Aᵢₖ = (−1)ⁱ⁺ᵏMᵢₖ</b>, знаки шахматкой + − +.",
+        "<b>3×3 считаем по Саррюсу:</b> (a·e·i + b·f·g + c·d·h) − (c·e·g + a·f·h + b·d·i)."
+      ]
+    },
+    {
+      id: "svoj", name: "Свойства определителей",
+      konspekt: `
+        <h3>Девять свойств из лекции</h3>
+        <ol>
+          <li>Определитель не меняется при транспонировании.</li>
+          <li>Если все элементы какой-либо строки (или столбца) равны нулю, то определитель равен 0.</li>
+          <li>Если две строки (два столбца) поменять местами, то определитель меняет знак.</li>
+          <li>Если элементы какой-либо строки (столбца) содержат общий множитель, то его можно вынести за знак определителя.</li>
+          <li>Если в определителе две строки (два столбца) одинаковы или пропорциональны, то определитель равен 0.</li>
+          <li>Справедливо равенство
+            <pre>| a₁₁+b₁₁  a₁₂+b₁₂  a₁₃+b₁₃ |
+|   a₂₁      a₂₂      a₂₃   |  =
+|   a₃₁      a₃₂      a₃₃   |
+
+  | a₁₁  a₁₂  a₁₃ |   | b₁₁  b₁₂  b₁₃ |
+= | a₂₁  a₂₂  a₂₃ | + | a₂₁  a₂₂  a₂₃ |
+  | a₃₁  a₃₂  a₃₃ |   | a₃₁  a₃₂  a₃₃ |</pre></li>
+          <li>Определитель не изменится, если к элементам какой-либо его строки (столбца) прибавить элементы другой строки (столбца), умноженные на одно и то же число.</li>
+          <li>Сумма произведений элементов <b>любой</b> строки (столбца) на свои алгебраические дополнения равна самому определителю.</li>
+          <li>Сумма произведений элементов <b>любой</b> строки (столбца) определителя на алгебраические дополнения другой строки (столбца) равна 0.</li>
+        </ol>
+        <p>Аналогии: свойство 3 - выключатель, каждое нажатие меняет знак на противоположный (две перестановки - снова плюс). Свойство 7 - ластик: им стираем числа до нулей, а ответ не меняется.</p>
+        <h3>Как считаем 4-й порядок: треугольный вид</h3>
+        <p>Правило Саррюса работает <mark>только для 3×3</mark>. Определитель 4-го порядка свойствами 3, 4 и 7 приводим к <b>треугольному виду</b> - под главной диагональю одни нули. Тогда определитель равен произведению чисел на диагонали.</p>
+        <pre>| 2   5   7 |
+| 0  −3   4 |  = 2·(−3)·5 = −30
+| 0   0   5 |
+
+Саррюс даёт то же:
+(−30 + 0 + 0) − (0 + 0 + 0) = −30</pre>
+        <p>Строки обозначаем С1, С2, С3, С4 (С - строка).</p>
+        <div class="tablebox"><table>
+          <tr><th>Что делаем</th><th>Что с определителем</th></tr>
+          <tr><td>К строке прибавляем другую строку, умноженную на число: С2 → С2 − 4·С1</td><td><b>не меняется</b> (свойство 7) - главное действие</td></tr>
+          <tr><td>Меняем местами две строки: С1 ↔ С4</td><td><b>меняет знак</b> (свойство 3)</td></tr>
+          <tr><td>Выносим из строки общий множитель k</td><td>k выносится за знак определителя (свойство 4)</td></tr>
+        </table></div>
+        <ol>
+          <li>Поставить наверх строку с 1 в первом столбце (перестановкой строк, запомнить знак).</li>
+          <li>Этой строкой обнулить весь первый столбец под ней.</li>
+          <li>Во втором столбце добыть 1 или −1 (перестановкой или сложением строк) и обнулить всё под ней.</li>
+          <li>Так же с третьим столбцом - пока под диагональю не останутся одни нули.</li>
+          <li>Δ = знак от перестановок × произведение чисел на диагонали (и вынесенные множители, если были).</li>
+        </ol>
+        <h3>ТР №1, вариант 16, задача 1.4</h3>
+        <pre>    | −3   1   5   2 |
+Δ = |  4  −1   1  −2 |
+    | −5   2  −1   0 |
+    |  1  −2   1  −2 |
+
+1) С1 ↔ С4 - единица наверх, знак «−»
+   |  1  −2   1  −2 |
+   |  4  −1   1  −2 |
+   | −5   2  −1   0 |
+   | −3   1   5   2 |
+
+2) С2 − 4·С1,  С3 + 5·С1,  С4 + 3·С1
+   |  1  −2   1  −2 |
+   |  0   7  −3   6 |
+   |  0  −8   4 −10 |
+   |  0  −5   8  −4 |
+
+3) С2 + С3: 7 + (−8) = −1 - опорный
+   |  1  −2   1  −2 |
+   |  0  −1   1  −4 |
+   |  0  −8   4 −10 |
+   |  0  −5   8  −4 |
+
+4) С3 − 8·С2,  С4 − 5·С2
+   |  1  −2   1  −2 |
+   |  0  −1   1  −4 |
+   |  0   0  −4  22 |
+   |  0   0   3  16 |
+
+5) С3 + С4: −4 + 3 = −1
+   |  1  −2   1  −2 |
+   |  0  −1   1  −4 |
+   |  0   0  −1  38 |
+   |  0   0   3  16 |
+
+6) С4 + 3·С3: 16 + 3·38 = 130
+   |  1  −2   1  −2 |
+   |  0  −1   1  −4 |
+   |  0   0  −1  38 |
+   |  0   0   0 130 |
+
+Перестановка одна → знак «−»
+Δ = −(1·(−1)·(−1)·130) = −130</pre>
+        <p>Опорный элемент −1 так же удобен, как 1: под ним обнуляем без дробей. В ТР сказано «привести к диагональному виду»: если преподаватель требует именно его, дальше так же обнуляют числа <b>над</b> диагональю, идя снизу вверх. Числа на диагонали при этом не меняются, ответ тот же.</p>
+        <p>Частые ошибки: забыть знак от перестановки (свойство 3); умножить саму изменяемую строку, например С2 → 2·С2 − С1, - по свойству 4 это умножает определитель на 2; работать строкой, у которой левее опорного элемента не нули, - это портит уже полученные нули.</p>
+        <h3>Теорема 1</h3>
+        <p><b>Теорема 1.</b> Если A и B - квадратные матрицы n-го порядка, то Δ(A·B) = Δ(A)·Δ(B).</p>
+        <p><b>Следствие.</b> Δ(A·B) = Δ(B·A).</p>
+        <h3>Пример 5 - образец решения задачи из контрольной работы</h3>
+        <p>Даны матрицы A и B. Проверить справедливость равенства Δ(A·B) = Δ(B·A) = Δ(A)·Δ(B). Определители считаем по Саррюсу.</p>
+        <pre>    (  2  1  0 )        ( −1  4   2 )
+A = ( −1  2  3 )    B = (  0  3  −2 )
+    (  4  0  2 )        (  5  1   1 )
+
+Δ(A): 2·2·2 + 1·3·4 + 0·(−1)·0 = 8 + 12 + 0 = 20
+      0·2·4 + 2·3·0 + 1·(−1)·2 = 0 + 0 − 2 = −2
+      Δ(A) = 20 − (−2) = 22
+
+Δ(B): (−1)·3·1 + 4·(−2)·5 + 2·0·1 = −3 − 40 + 0 = −43
+      2·3·5 + (−1)·(−2)·1 + 4·0·1 = 30 + 2 + 0 = 32
+      Δ(B) = −43 − 32 = −75
+
+      ( −2  11   2 )         (   2  7  16 )
+A·B = ( 16   5  −3 )   B·A = ( −11  6   5 )
+      (  6  18  10 )         (  13  7   5 )
+
+Δ(A·B): (−2)·5·10 + 11·(−3)·6 + 2·16·18
+        = −100 − 198 + 576 = 278
+        2·5·6 + (−2)·(−3)·18 + 11·16·10
+        = 60 + 108 + 1760 = 1928
+        Δ(A·B) = 278 − 1928 = −1650
+
+Δ(B·A): 2·6·5 + 7·5·13 + 16·(−11)·7
+        = 60 + 455 − 1232 = −717
+        16·6·13 + 2·5·7 + 7·(−11)·5
+        = 1248 + 70 − 385 = 933
+        Δ(B·A) = −717 − 933 = −1650
+
+Δ(A)·Δ(B) = 22·(−75) = −1650
+
+Таким образом, Δ(A·B) = Δ(B·A) = Δ(A)·Δ(B) = −1650</pre>
+        <h3>ТР №1, вариант 16, задача 1.3 - та же проверка</h3>
+        <p>Δ(A) = 27 и Δ(C) = 93 посчитаны в теме «Определители», AC и CA - в теме «Умножение матриц».</p>
+        <pre>|AC| = | −3    9   −3 |
+       |−27   15   −6 |
+       | 47  −10   18 |  =
+
+(−3)·15·18 + 9·(−6)·47 + (−3)·(−27)·(−10)
+   = −810 − 2538 − 810 = −4158
+(−3)·15·47 + (−3)·(−6)·(−10) + 9·(−27)·18
+   = −2115 − 180 − 4374 = −6669
+|AC| = −4158 − (−6669) = 2511
+
+|CA| = |  1   −5  −27 |
+       |  5   14   24 |
+       |  5   −4   15 |  =
+
+1·14·15 + (−5)·24·5 + (−27)·5·(−4)
+   = 210 − 600 + 540 = 150
+(−27)·14·5 + 1·24·(−4) + (−5)·5·15
+   = −1890 − 96 − 375 = −2361
+|CA| = 150 − (−2361) = 2511
+
+|C|·|A| = 93·27 = 2511  →  равенство выполняется</pre>
+        <div class="callout"><b>Главное:</b> прибавление другой строки, умноженной на число, определитель не меняет, перестановка строк меняет знак, общий множитель выносится за знак. Δ(A·B) = Δ(A)·Δ(B) = Δ(B·A).</div>`,
+      terms: [
+        { term: "Теорема 1", def: "если A и B - квадратные матрицы n-го порядка, то Δ(A·B) = Δ(A)·Δ(B). Следствие: Δ(A·B) = Δ(B·A)." },
+        { term: "Треугольный вид (способ счёта 4×4)", def: "вид, в котором все элементы под главной диагональю равны 0; определитель равен произведению чисел на диагонали." },
+        { term: "Опорный элемент", def: "число на диагонали (удобнее всего 1 или −1), которым обнуляют элементы столбца под ним." }
+      ],
+      cards: [
+        { front: "Определитель при транспонировании", back: "Не меняется (свойство 1)." },
+        { front: "Поменяли местами две строки", back: "Определитель меняет знак (свойство 3)." },
+        { front: "У строки есть общий множитель", back: "Его можно вынести за знак определителя (свойство 4)." },
+        { front: "Две строки одинаковы или пропорциональны", back: "Определитель равен 0 (свойство 5)." },
+        { front: "К строке прибавили другую строку, умноженную на число", back: "Определитель не изменится (свойство 7)." },
+        { front: "Теорема 1", back: "Δ(A·B) = Δ(A)·Δ(B). Следствие: Δ(A·B) = Δ(B·A)." },
+        { front: "Как считать определитель 4-го порядка?", back: "Свойствами 3, 4, 7 привести к треугольному виду и перемножить диагональ. Саррюс - только для 3×3." },
+        { front: "ТР, вариант 16, задача 1.4", back: "Одна перестановка, диагональ 1, −1, −1, 130 → Δ = −130." }
+      ],
+      questions: [
+        { type: "truefalse", level: "easy", q: "Правило Саррюса подходит для определителя 4-го порядка.", answer: false,
+          explain: "Саррюс - только для 3×3. Определитель 4-го порядка приводят к треугольному виду свойствами 3, 4 и 7." },
+        { type: "single", level: "easy", q: "Все элементы одной строки определителя равны нулю. Чему равен определитель?",
+          options: [{ t: "0", correct: true }, { t: "1", correct: false }, { t: "произведению диагонали", correct: false }, { t: "без вычислений не сказать", correct: false }],
+          explain: "Свойство 2: если все элементы какой-либо строки (или столбца) равны нулю, то определитель равен 0." },
+        { type: "match", level: "med", q: "Сопоставь действие со строками и что происходит с определителем.",
+          pairs: [{ left: "С2 → С2 + 3·С1", right: "не меняется" }, { left: "С1 ↔ С3", right: "меняет знак" }, { left: "из С2 вынесли 5", right: "5 выносится за знак определителя" }, { left: "С3 = 2·С1", right: "определитель равен 0" }],
+          explain: "Свойства 7, 3, 4 и 5 из лекции." },
+        { type: "multiple", level: "med", q: "Какие действия не меняют определитель?",
+          options: [{ t: "С3 → С3 − 7·С2", correct: true }, { t: "С1 → С1 + С4", correct: true }, { t: "транспонирование", correct: true }, { t: "С2 ↔ С3", correct: false }, { t: "С4 → 3·С4", correct: false }],
+          explain: "Прибавление другой строки с множителем - свойство 7, транспонирование - свойство 1. Перестановка меняет знак (свойство 3). В 3·С4 появился общий множитель 3 - по свойству 4 определитель умножился на 3." },
+        { type: "single", level: "med", q: "ТР №1, вариант 16. После С1 ↔ С4: С1 = (1 −2 1 −2), С2 = (4 −1 1 −2). Какой станет С2 после С2 − 4·С1?",
+          options: [{ t: "(0  7  −3  6)", correct: true }, { t: "(8  −9  5  −10)", correct: false }, { t: "(0  −7  3  −6)", correct: false }, { t: "(0  7  5  6)", correct: false }],
+          explain: "4 − 4·1 = 0, −1 − 4·(−2) = 7, 1 − 4·1 = −3, −2 − 4·(−2) = 6. (8 −9 5 −10) - это С2 + 4·С1, перепутан знак." },
+        { type: "fill", level: "med", q: "ТР №1, вариант 16: Δ(A) = 27, Δ(C) = 93. По теореме 1 Δ(A·C) = ___",
+          answers: ["2511"], explain: "Δ(A·C) = Δ(A)·Δ(C) = 27·93 = 2511. Прямой счёт по Саррюсу даёт то же: −4158 − (−6669) = 2511." },
+        { type: "single", level: "hard", q: "Лекция, пример 5: Δ(A) = 22, Δ(B) = −75. Чему равен Δ(B·A)?",
+          options: [{ t: "−1650", correct: true }, { t: "1650", correct: false }, { t: "−53", correct: false }, { t: "Нельзя найти, не посчитав B·A", correct: false }],
+          explain: "По теореме 1 и следствию Δ(B·A) = Δ(A·B) = Δ(A)·Δ(B) = 22·(−75) = −1650." },
+        { type: "fill", level: "hard", q: "ТР №1, вариант 16, задача 1.4: |−3 1 5 2; 4 −1 1 −2; −5 2 −1 0; 1 −2 1 −2| = ___",
+          answers: ["-130", "−130"], explain: "Одна перестановка (С1 ↔ С4), на диагонали 1, −1, −1, 130. Δ = −(1·(−1)·(−1)·130) = −130." }
+      ],
+      oral: [
+        { q: "Дайте определение определителя n-го порядка.", a: "Определителем n-го порядка называется сумма произведений элементов 1-ой строки на их алгебраические дополнения." },
+        { q: "Как меняется определитель при перестановке строк и при прибавлении к строке другой строки?", a: "Если две строки (два столбца) поменять местами, то определитель меняет знак. Определитель не изменится, если к элементам какой-либо его строки (столбца) прибавить элементы другой строки (столбца), умноженные на одно и то же число." },
+        { q: "Когда определитель равен нулю?", a: "Если все элементы какой-либо строки (или столбца) равны нулю, то определитель равен 0. Если в определителе две строки (два столбца) одинаковы или пропорциональны, то определитель равен 0." },
+        { q: "Сформулируйте теорему об определителе произведения матриц.", a: "Теорема 1. Если A и B - квадратные матрицы n-го порядка, то Δ(A·B) = Δ(A)·Δ(B). Следствие. Δ(A·B) = Δ(B·A)." }
+      ],
+      cheat: [
+        "<b>Транспонирование</b> Δ не меняет; <b>нулевая строка</b> или <b>две одинаковые / пропорциональные</b> строки - Δ = 0.",
+        "<b>Перестановка строк</b> - смена знака; <b>общий множитель</b> - за знак; <b>+ другая строка × число</b> - Δ не меняется.",
+        "<b>4×4:</b> к треугольному виду, Δ = знак · произведение диагонали. Вариант 16: <b>−130</b>.",
+        "<b>Δ(A·B) = Δ(A)·Δ(B) = Δ(B·A)</b>. Пример 5: −1650; вариант 16: 27·93 = 2511."
+      ]
+    },
+    {
+      id: "obr", name: "Обратные матрицы",
+      konspekt: `
+        <h3>Аналогия: обратное число</h3>
+        <p>У числа 5 есть обратное 1/5: 5·(1/5) = 1. У нуля обратного нет - на 0 делить нельзя. С матрицами так же: роль единицы играет E, а роль «нуля» - матрица с Δ(A) = 0.</p>
+        <h3>Определения</h3>
+        <p>Матрица A⁻¹ называется <b>обратной</b> к квадратной матрице A, если</p>
+        <pre>A·A⁻¹ = A⁻¹·A = E</pre>
+        <p>Матрица A называется <b>вырожденной</b>, если Δ(A) = 0; в противном случае A - <b>невырожденная</b> матрица.</p>
+        <div class="callout"><b>Главное:</b> для того, чтобы матрица A имела обратную, необходимо и достаточно, чтобы она была невырожденной, т.е. Δ(A) ≠ 0.</div>
+        <h3>Формула</h3>
+        <p>В таком случае,</p>
+        <pre>A⁻¹ = 1/Δ(A) ·
+
+   ( A₁₁  A₂₁  …  Aₙ₁ )
+   ( A₁₂  A₂₂  …  Aₙ₂ )
+   (  …    …   …   …  )
+   ( A₁ₙ  A₂ₙ  …  Aₙₙ )</pre>
+        <p>т.е. обратная матрица есть разделенная на Δ(A) транспонированная матрица алгебраических дополнений элементов матрицы A.</p>
+        <p><mark>Дополнения элементов строки записываются в столбец</mark>: в первой строке стоят A₁₁, A₂₁, A₃₁. Это самое частое место ошибки.</p>
+        <h3>Пример 6 из лекции</h3>
+        <p>Дана матрица A. Найти A⁻¹. Определитель считаем по Саррюсу.</p>
+        <pre>    (  5   1  −1 )
+A = (  2  −1   3 )
+    ( −2   4   7 )
+
+5·(−1)·7 + 1·3·(−2) + (−1)·2·4 = −35 − 6 − 8 = −49
+(−1)·(−1)·(−2) + 5·3·4 + 1·2·7 = −2 + 60 + 14 = 72
+Δ(A) = −49 − 72 = −121 ≠ 0  →  A⁻¹ существует
+
+Алгебраические дополнения:
+A₁₁ = +|−1  3; 4  7|  = −19
+A₁₂ = −|2  3; −2  7|  = −20
+A₁₃ = +|2  −1; −2  4| = 6
+A₂₁ = −|1  −1; 4  7|  = −11
+A₂₂ = +|5  −1; −2  7| = 33
+A₂₃ = −|5  1; −2  4|  = −22
+A₃₁ = +|1  −1; −1  3| = 2
+A₃₂ = −|5  −1; 2  3|  = −17
+A₃₃ = +|5  1; 2  −1|  = −7
+
+и тогда
+
+A⁻¹ = 1/(−121) ·
+
+   ( −19  −11    2 )
+   ( −20   33  −17 )
+   (   6  −22   −7 )
+
+Проверка:
+A·A⁻¹ = −1/121 · ( −121     0     0 )
+                 (    0  −121     0 )
+                 (    0     0  −121 )
+
+      = ( 1  0  0 )
+        ( 0  1  0 ) = E
+        ( 0  0  1 )</pre>
+        <p>Аналогично убеждаемся, что A⁻¹·A = E. Значит, матрица A⁻¹ найдена верно.</p>
+        <h3>Теорема 2</h3>
+        <p><b>Теорема 2.</b> Если A и B невырожденные квадратные матрицы одинакового порядка, то (A·B)⁻¹ = B⁻¹·A⁻¹.</p>
+        <p>Аналогия: утром надеваешь носки, потом ботинки. Вечером снимаешь в обратном порядке - сначала ботинки, потом носки.</p>
+        <h3>ТР №1, вариант 16</h3>
+        <p>Δ(A) = 27 ≠ 0 и Δ(C) = 93 ≠ 0 (тема «Определители») - обе матрицы невырожденные, у каждой есть обратная.</p>`,
+      terms: [
+        { term: "Обратная матрица A⁻¹", def: "матрица, для которой A·A⁻¹ = A⁻¹·A = E, где A - квадратная матрица." },
+        { term: "Вырожденная матрица", def: "матрица A, у которой Δ(A) = 0." },
+        { term: "Невырожденная матрица", def: "матрица A, у которой Δ(A) ≠ 0." },
+        { term: "Теорема 2", def: "если A и B невырожденные квадратные матрицы одинакового порядка, то (A·B)⁻¹ = B⁻¹·A⁻¹." }
+      ],
+      cards: [
+        { front: "Обратная матрица", back: "A⁻¹ такая, что A·A⁻¹ = A⁻¹·A = E." },
+        { front: "Вырожденная матрица", back: "Δ(A) = 0. Если Δ(A) ≠ 0 - невырожденная." },
+        { front: "Когда существует A⁻¹?", back: "Необходимо и достаточно, чтобы A была невырожденной: Δ(A) ≠ 0." },
+        { front: "Формула A⁻¹", back: "Разделенная на Δ(A) транспонированная матрица алгебраических дополнений элементов A." },
+        { front: "Где в формуле A⁻¹ стоит A₁₂?", back: "Во 2-й строке 1-го столбца: дополнения строки идут в столбец." },
+        { front: "(A·B)⁻¹ = ?", back: "B⁻¹·A⁻¹ (теорема 2)." },
+        { front: "Лекция, пример 6: Δ(A)", back: "−121, A⁻¹ = 1/(−121) · (−19 −11 2; −20 33 −17; 6 −22 −7)." }
+      ],
+      questions: [
+        { type: "truefalse", level: "easy", q: "ТР №1, вариант 16: Δ(A) = 27, значит у матрицы A есть обратная.", answer: true,
+          explain: "Δ(A) = 27 ≠ 0 - матрица невырожденная, а для существования обратной это необходимо и достаточно." },
+        { type: "single", level: "easy", q: "Какая матрица называется вырожденной?",
+          options: [{ t: "у которой Δ(A) = 0", correct: true }, { t: "у которой Δ(A) ≠ 0", correct: false }, { t: "у которой все элементы равны 0", correct: false }, { t: "которая не квадратная", correct: false }],
+          explain: "Матрица A называется вырожденной, если Δ(A) = 0; в противном случае A - невырожденная матрица." },
+        { type: "multiple", level: "med", q: "Что верно для обратной матрицы?",
+          options: [{ t: "A·A⁻¹ = E", correct: true }, { t: "A⁻¹·A = E", correct: true }, { t: "(A·B)⁻¹ = B⁻¹·A⁻¹ для невырожденных A и B", correct: true }, { t: "(A·B)⁻¹ = A⁻¹·B⁻¹", correct: false }, { t: "обратная есть у любой квадратной матрицы", correct: false }],
+          explain: "По определению A·A⁻¹ = A⁻¹·A = E. Теорема 2: (A·B)⁻¹ = B⁻¹·A⁻¹ - порядок обратный. Обратная есть только у невырожденной матрицы." },
+        { type: "fill", level: "med", q: "Лекция, пример 6: A = (5 1 −1; 2 −1 3; −2 4 7). По Саррюсу Δ(A) = ___",
+          answers: ["-121", "−121"], explain: "(−35 − 6 − 8) − (−2 + 60 + 14) = −49 − 72 = −121." },
+        { type: "single", level: "med", q: "В формуле A⁻¹ = 1/Δ(A) · (…) из лекции первая строка матрицы в скобках - это…",
+          options: [{ t: "A₁₁, A₂₁, A₃₁ - дополнения элементов первого столбца", correct: true }, { t: "A₁₁, A₁₂, A₁₃ - дополнения элементов первой строки", correct: false }, { t: "A₁₁, A₂₂, A₃₃ - дополнения главной диагонали", correct: false }, { t: "M₁₁, M₁₂, M₁₃ - миноры первой строки", correct: false }],
+          explain: "Обратная матрица - разделенная на Δ(A) транспонированная матрица алгебраических дополнений: дополнения строки записываются в столбец." },
+        { type: "match", level: "med", q: "Сопоставь запись и её смысл.",
+          pairs: [{ left: "Δ(A) = 0", right: "вырожденная, обратной нет" }, { left: "Δ(A) ≠ 0", right: "невырожденная, обратная есть" }, { left: "A⁻¹·A", right: "E" }, { left: "1/Δ(A)", right: "множитель перед матрицей дополнений" }],
+          explain: "Определения и формула обратной матрицы из раздела «Обратные матрицы»." },
+        { type: "fill", level: "hard", q: "Лекция, пример 6: A = (5 1 −1; 2 −1 3; −2 4 7). Алгебраическое дополнение A₁₂ = ___",
+          answers: ["-20", "−20"], explain: "Вычёркиваем 1-ю строку и 2-й столбец: M₁₂ = |2 3; −2 7| = 14 + 6 = 20. A₁₂ = (−1)¹⁺²·20 = −20." },
+        { type: "fill", level: "hard", q: "Лекция, пример 6: Δ(A) = −121, A₂₁ = −11. Элемент в 1-й строке и 2-м столбце матрицы A⁻¹ равен ___ (дробью)",
+          answers: ["1/11"], explain: "На месте (1,2) в A⁻¹ стоит A₂₁/Δ(A) = −11/(−121) = 1/11 - дополнения строки идут в столбец." }
+      ],
+      oral: [
+        { q: "Дайте определение обратной матрицы.", a: "Матрица A⁻¹ называется обратной к квадратной матрице A, если A·A⁻¹ = A⁻¹·A = E." },
+        { q: "Дайте определение вырожденной матрицы.", a: "Матрица A называется вырожденной, если Δ(A) = 0; в противном случае A - невырожденная матрица." },
+        { q: "Когда существует обратная матрица и как её найти?", a: "Для того, чтобы матрица A имела обратную, необходимо и достаточно, чтобы она была невырожденной, т.е. Δ(A) ≠ 0. В таком случае обратная матрица есть разделенная на Δ(A) транспонированная матрица алгебраических дополнений элементов матрицы A." },
+        { q: "Сформулируйте теорему об обратной матрице произведения.", a: "Теорема 2. Если A и B невырожденные квадратные матрицы одинакового порядка, то (A·B)⁻¹ = B⁻¹·A⁻¹." }
+      ],
+      cheat: [
+        "<b>A·A⁻¹ = A⁻¹·A = E</b>.",
+        "A⁻¹ существует ⟺ <b>Δ(A) ≠ 0</b> (невырожденная).",
+        "<b>A⁻¹ = 1/Δ(A) · (транспонированная матрица дополнений)</b> - дополнения строки пишем в столбец.",
+        "<b>(A·B)⁻¹ = B⁻¹·A⁻¹</b>. Пример 6: Δ(A) = −121."
+      ]
+    }
+  ]
+};
+
+/* ===== ДВИЖОК (не менять) ===== */
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const make = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const KEY = "trenazher:" + DATA.title;
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const norm = (s) => String(s).toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").replace(/[.,;!]+$/, "").trim();
+  const TYPE = { single: "один ответ", multiple: "несколько", truefalse: "верно / неверно", fill: "вписать", match: "сопоставить" };
+  const LEVEL = { easy: "лёгкий", med: "средний", hard: "сложный" };
+
+  /* Шапка и подпись */
+  document.title = DATA.title;
+  $("#pageTitle").textContent = DATA.title;
+  $("#pageSub").textContent = DATA.subtitle || "";
+  (DATA.meta || []).forEach((m) => $("#pageMeta").appendChild(make("span", "chip", esc(m))));
+  const au = $("#author"); au.href = AUTHOR.url; au.querySelector("b").textContent = AUTHOR.nick;
+  $("#footer").innerHTML = 'Тренажёр собрал <a href="' + esc(AUTHOR.url) + '" target="_blank" rel="noopener">' + esc(AUTHOR.nick) + "</a>";
+
+  /* Тема */
+  const root = document.documentElement;
+  const dark = () => root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const savedTheme = store.get(KEY + ":theme", null);
+  if (savedTheme) root.dataset.theme = savedTheme;
+  const themeLabel = () => { $("#themeBtn").textContent = dark() ? "Светлая тема" : "Тёмная тема"; };
+  $("#themeBtn").onclick = () => { const t = dark() ? "light" : "dark"; root.dataset.theme = t; store.set(KEY + ":theme", t); themeLabel(); };
+  themeLabel();
+
+  /* Фильтр тем */
+  let topic = "all";
+  const sel = () => topic === "all" ? DATA.topics : DATA.topics.filter((t) => t.id === topic);
+  function renderTopics() {
+    const box = $("#topics"); box.innerHTML = "";
+    if (DATA.topics.length < 2) return;
+    [{ id: "all", name: "Все темы" }].concat(DATA.topics).forEach((t) => {
+      const b = make("button", "tchip", esc(t.name)); b.type = "button";
+      b.setAttribute("aria-pressed", String(t.id === topic));
+      b.onclick = () => { topic = t.id; renderAll(); };
+      box.appendChild(b);
+    });
+  }
+
+  /* Конспект */
+  function renderKonspekt() {
+    const p = $("#p-konspekt"); p.innerHTML = "";
+    sel().forEach((t) => {
+      const s = make("section", "sheet");
+      s.appendChild(make("span", "kicker", "тема"));
+      s.appendChild(make("h2", null, esc(t.name)));
+      s.appendChild(make("div", null, t.konspekt || ""));
+      p.appendChild(s);
+    });
+  }
+
+  /* Тесты */
+  let mode = "learn", level = "all", qs = [];
+  function seg(boxId, items, cur, set) {
+    const box = $(boxId); box.innerHTML = "";
+    items.forEach(([v, label]) => {
+      const b = make("button", null, label); b.type = "button";
+      b.setAttribute("aria-pressed", String(v === cur));
+      b.onclick = () => { set(v); renderTests(); };
+      box.appendChild(b);
+    });
+  }
+  function renderTests() {
+    seg("#modeSeg", [["learn", "Учёба"], ["exam", "Экзамен"]], mode, (v) => { mode = v; });
+    seg("#levelSeg", [["all", "Все"], ["easy", "Лёгкие"], ["med", "Средние"], ["hard", "Сложные"]], level, (v) => { level = v; });
+    const list = $("#qlist"); list.innerHTML = "";
+    qs = [];
+    sel().forEach((t) => (t.questions || []).forEach((q) => { if (level === "all" || q.level === level) qs.push(q); }));
+    $("#score").textContent = ""; $("#bar").style.width = "0";
+    if (!qs.length) { list.appendChild(make("div", "empty", "Нет вопросов с таким фильтром")); return; }
+    qs.forEach((q, i) => list.appendChild(renderQ(q, i)));
+  }
+  function renderQ(q, i) {
+    const box = make("div", "q"); box.dataset.i = i;
+    const head = make("div", "qhead");
+    head.appendChild(make("span", "tag", (i + 1) + " · " + TYPE[q.type]));
+    if (q.level) head.appendChild(make("span", "tag lvl-" + q.level, LEVEL[q.level] || q.level));
+    box.appendChild(head);
+    box.appendChild(make("p", "qtext", esc(q.q)));
+    const name = "q" + i;
+    if (q.type === "single" || q.type === "multiple") {
+      const opts = make("div", "opts");
+      shuffle(q.options.map((o, k) => ({ o, k }))).forEach(({ o, k }) => {
+        const l = make("label", "opt"); l.dataset.k = k;
+        const inp = document.createElement("input"); inp.type = q.type === "single" ? "radio" : "checkbox"; inp.name = name; inp.value = k; inp.id = name + "-" + k;
+        l.appendChild(inp); l.appendChild(make("span", null, esc(o.t))); opts.appendChild(l);
+      });
+      box.appendChild(opts);
+    } else if (q.type === "truefalse") {
+      const opts = make("div", "opts");
+      [["true", "Верно"], ["false", "Неверно"]].forEach(([v, t]) => {
+        const l = make("label", "opt"); l.dataset.k = v;
+        const inp = document.createElement("input"); inp.type = "radio"; inp.name = name; inp.value = v; inp.id = name + "-" + v;
+        l.appendChild(inp); l.appendChild(make("span", null, t)); opts.appendChild(l);
+      });
+      box.appendChild(opts);
+    } else if (q.type === "fill") {
+      const inp = document.createElement("input"); inp.type = "text"; inp.id = name + "-fill"; inp.placeholder = "Твой ответ"; inp.autocomplete = "off";
+      inp.onkeydown = (e) => { if (e.key === "Enter") check(box, q); };
+      box.appendChild(inp);
+    } else if (q.type === "match") {
+      const rights = shuffle(q.pairs.map((p) => p.right));
+      q.pairs.forEach((p, k) => {
+        const row = make("div", "mrow");
+        row.appendChild(make("span", "ml", esc(p.left)));
+        const s = document.createElement("select"); s.id = name + "-m" + k;
+        s.appendChild(new Option("выбери…", ""));
+        rights.forEach((r) => s.appendChild(new Option(r, r)));
+        row.appendChild(s); box.appendChild(row);
+      });
+    }
+    const ex = make("div", "explain", "<b>Разбор:</b> " + esc(q.explain || "")); ex.hidden = true; box.appendChild(ex);
+    if (mode === "learn") {
+      const b = make("button", "btn ghost small", "Проверить"); b.type = "button";
+      b.onclick = () => check(box, q); box.appendChild(b);
+    }
+    return box;
+  }
+  function check(box, q) {
+    let ok = false;
+    const labels = [...box.querySelectorAll(".opt")];
+    labels.forEach((l) => l.classList.remove("o-ok", "o-bad"));
+    if (q.type === "single" || q.type === "multiple") {
+      const picked = new Set([...box.querySelectorAll("input:checked")].map((x) => +x.value));
+      const right = new Set(q.options.map((o, k) => o.correct ? k : -1).filter((k) => k >= 0));
+      ok = picked.size === right.size && [...picked].every((k) => right.has(k));
+      labels.forEach((l) => { const k = +l.dataset.k; if (right.has(k)) l.classList.add("o-ok"); else if (picked.has(k)) l.classList.add("o-bad"); });
+    } else if (q.type === "truefalse") {
+      const p = box.querySelector("input:checked");
+      ok = !!p && (p.value === "true") === q.answer;
+      labels.forEach((l) => { const isRight = (l.dataset.k === "true") === q.answer; if (isRight) l.classList.add("o-ok"); else if (p && p.value === l.dataset.k) l.classList.add("o-bad"); });
+    } else if (q.type === "fill") {
+      const v = norm(box.querySelector("input").value);
+      ok = v !== "" && q.answers.some((a) => norm(a) === v);
+    } else if (q.type === "match") {
+      ok = true;
+      box.querySelectorAll("select").forEach((s, k) => { const good = s.value === q.pairs[k].right; s.classList.toggle("s-ok", good); s.classList.toggle("s-bad", !good); if (!good) ok = false; });
+    }
+    box.classList.toggle("is-ok", ok); box.classList.toggle("is-bad", !ok);
+    box.querySelector(".explain").hidden = false;
+    return ok;
+  }
+  $("#checkAll").onclick = () => {
+    if (!qs.length) return;
+    let n = 0;
+    document.querySelectorAll("#qlist .q").forEach((box) => { if (check(box, qs[+box.dataset.i])) n++; });
+    const pct = Math.round(n / qs.length * 100);
+    $("#score").innerHTML = "<b>" + n + " / " + qs.length + "</b> · " + pct + "%";
+    $("#bar").style.width = pct + "%";
+  };
+  $("#resetAll").onclick = () => renderTests();
+
+  /* Карточки */
+  let deck = [], idx = 0;
+  let learned = new Set(store.get(KEY + ":learned", []));
+  function renderCards(reshuffle) {
+    const all = []; sel().forEach((t) => (t.cards || []).forEach((c) => all.push(c)));
+    deck = reshuffle ? shuffle(all) : all; if (idx >= deck.length) idx = 0;
+    drawCard();
+  }
+  function drawCard() {
+    const box = $("#deck"); box.innerHTML = "";
+    const n = deck.filter((c) => learned.has(c.front)).length;
+    $("#learned").innerHTML = deck.length ? "Знаю: <b>" + n + "</b> из " + deck.length : "";
+    if (!deck.length) { box.appendChild(make("div", "empty", "В этой теме нет карточек")); $("#counter").textContent = "0 / 0"; return; }
+    const c = deck[idx];
+    const fc = make("button", "fc"); fc.type = "button"; fc.setAttribute("aria-label", "Перевернуть карточку");
+    const inner = make("div", "inner");
+    const front = make("div", "face front", '<div class="t">' + esc(c.front) + '</div><span class="hint">нажми - ответ</span>');
+    const back = make("div", "face back", '<div class="t">' + esc(c.back) + "</div>");
+    if (learned.has(c.front)) front.appendChild(make("span", "learned-tag", "знаю"));
+    inner.appendChild(front); inner.appendChild(back); fc.appendChild(inner);
+    fc.onclick = () => fc.classList.toggle("flipped");
+    box.appendChild(fc);
+    $("#counter").textContent = (idx + 1) + " / " + deck.length;
+  }
+  const step = (d) => { if (!deck.length) return; idx = (idx + d + deck.length) % deck.length; drawCard(); };
+  const mark = (on) => { if (!deck.length) return; const f = deck[idx].front; on ? learned.add(f) : learned.delete(f); store.set(KEY + ":learned", [...learned]); step(1); };
+  $("#prev").onclick = () => step(-1);
+  $("#next").onclick = () => step(1);
+  $("#know").onclick = () => mark(true);
+  $("#again").onclick = () => mark(false);
+  $("#shuffle").onclick = () => { idx = 0; renderCards(true); };
+
+  /* Определения */
+  function renderOral() {
+    const p = $("#p-oral"); p.innerHTML = "";
+    sel().forEach((t) => {
+      const s = make("section", "sheet");
+      s.appendChild(make("span", "kicker", "тема"));
+      s.appendChild(make("h2", null, esc(t.name)));
+      if ((t.terms || []).length) {
+        const g = make("div", "terms");
+        t.terms.forEach((x) => g.appendChild(make("div", "term", "<b>" + esc(x.term) + "</b> - " + esc(x.def))));
+        s.appendChild(g);
+      }
+      (t.oral || []).forEach((o) => {
+        const d = document.createElement("details");
+        d.appendChild(make("summary", null, esc(o.q)));
+        d.appendChild(make("div", "ans", esc(o.a)));
+        s.appendChild(d);
+      });
+      p.appendChild(s);
+    });
+  }
+
+  /* Шпаргалка */
+  function renderCheat() {
+    const p = $("#p-cheat"); p.innerHTML = "";
+    const s = make("section", "sheet cheat");
+    s.appendChild(make("span", "kicker", "за час до пары"));
+    s.appendChild(make("h2", null, "Шпаргалка"));
+    sel().forEach((t) => {
+      s.appendChild(make("h3", null, esc(t.name)));
+      const ul = make("ul");
+      (t.cheat || []).forEach((c) => ul.appendChild(make("li", null, c)));
+      s.appendChild(ul);
+    });
+    p.appendChild(s);
+  }
+
+  /* Вкладки */
+  const TABS = ["konspekt", "tests", "cards", "oral", "cheat"];
+  function openTab(id) {
+    if (!TABS.includes(id)) id = "konspekt";
+    document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === id)));
+    TABS.forEach((t) => { $("#p-" + t).hidden = t !== id; });
+    store.set(KEY + ":tab", id);
+  }
+  document.querySelectorAll(".tab").forEach((t) => { t.onclick = () => openTab(t.dataset.tab); });
+
+  function renderAll() { renderTopics(); renderKonspekt(); renderTests(); renderCards(false); renderOral(); renderCheat(); }
+  renderAll();
+  openTab((location.hash || "").slice(1) || store.get(KEY + ":tab", "konspekt"));
+})();
+</script>

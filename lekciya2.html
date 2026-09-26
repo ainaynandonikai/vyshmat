@@ -1,0 +1,1408 @@
+<title>Системы линейных алгебраических уравнений</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+  /* Светлая тема - тетрадь в клетку, тёмная - школьная доска */
+  :root{
+    --paper:#F5F6F1; --grid:rgba(47,85,212,.085); --card:#FFFFFF; --card2:#F0F2F7;
+    --ink:#1C2333; --muted:#566078; --faint:#8790A4; --line:#D8DDE6; --line2:#C3CAD8;
+    --accent:#2F55D4; --accent-ink:#FFFFFF; --accent-soft:rgba(47,85,212,.10);
+    --margin:#D2455A; --margin-soft:rgba(210,69,90,.09); --hl:rgba(255,208,0,.38);
+    --ok:#23804F; --ok-soft:rgba(35,128,79,.11); --bad:#C4344A; --bad-soft:rgba(196,52,74,.09); --warn:#A86A12;
+    --display:"Unbounded","Golos Text",system-ui,sans-serif;
+    --body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --paper:#17201C; --grid:rgba(230,236,228,.045); --card:#1E2924; --card2:#24312B;
+      --ink:#E5EBE3; --muted:#A6B2A9; --faint:#7A877E; --line:#2F3C35; --line2:#3E4D45;
+      --accent:#8FB1FF; --accent-ink:#10182A; --accent-soft:rgba(143,177,255,.14);
+      --margin:#FF8898; --margin-soft:rgba(255,136,152,.12); --hl:rgba(255,214,64,.22);
+      --ok:#6FD29C; --ok-soft:rgba(111,210,156,.13); --bad:#FF8898; --bad-soft:rgba(255,136,152,.12); --warn:#E7B65B;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --paper:#17201C; --grid:rgba(230,236,228,.045); --card:#1E2924; --card2:#24312B;
+    --ink:#E5EBE3; --muted:#A6B2A9; --faint:#7A877E; --line:#2F3C35; --line2:#3E4D45;
+    --accent:#8FB1FF; --accent-ink:#10182A; --accent-soft:rgba(143,177,255,.14);
+    --margin:#FF8898; --margin-soft:rgba(255,136,152,.12); --hl:rgba(255,214,64,.22);
+    --ok:#6FD29C; --ok-soft:rgba(111,210,156,.13); --bad:#FF8898; --bad-soft:rgba(255,136,152,.12); --warn:#E7B65B;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--body);font-size:16px;line-height:1.6;color:var(--ink);background-color:var(--paper);
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:24px 24px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:780px;margin:0 auto;padding:0 16px;padding-block:28px 64px;position:relative}
+  @media (min-width:860px){.wrap::before{content:"";position:absolute;top:0;bottom:0;left:-22px;width:2px;background:var(--margin-soft)}}
+
+  /* Шапка */
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--margin)}
+  .author{font-family:var(--mono);font-size:12.5px;color:var(--muted);text-decoration:none;border:1px solid var(--line2);
+    border-radius:999px;padding:4px 11px;background:var(--card)}
+  .author b{color:var(--accent);font-weight:600}
+  .author:hover{border-color:var(--accent)}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,6.4vw,44px);line-height:1.1;letter-spacing:-.01em;
+    margin:16px 0 8px;text-wrap:balance}
+  .sub{color:var(--muted);margin:0;max-width:62ch}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .chip{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--line);background:var(--card);padding:3px 9px;border-radius:6px}
+  .themebtn{font-family:var(--mono);font-size:12.5px;color:var(--ink);background:var(--card);border:1px solid var(--line2);
+    border-radius:8px;padding:6px 11px;cursor:pointer}
+  .themebtn:hover{border-color:var(--accent)}
+
+  /* Вкладки и темы */
+  .tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:4px;overflow-x:auto;margin:22px -16px 0;padding:10px 16px 0;
+    background:var(--paper);border-bottom:1px solid var(--line)}
+  .tabs::-webkit-scrollbar{height:0}
+  .tab{font:600 14px/1 var(--body);color:var(--muted);background:none;border:none;border-bottom:3px solid transparent;
+    padding:10px 12px 11px;cursor:pointer;white-space:nowrap}
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+  .topics{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 4px}
+  .tchip{font:500 13px/1 var(--body);color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 13px;cursor:pointer}
+  .tchip:hover{border-color:var(--line2);color:var(--ink)}
+  .tchip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .panel{margin-top:14px}
+  .sheet{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px 20px;margin-bottom:14px}
+  .sheet>h2{font-family:var(--display);font-weight:500;font-size:20px;margin:0 0 4px;text-wrap:balance}
+  .kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+  h3{font-size:17px;margin:20px 0 6px}
+  p{margin:8px 0}
+  ul,ol{margin:8px 0;padding-left:22px}
+  li{margin:4px 0}
+  mark{background:var(--hl);color:inherit;padding:0 3px;border-radius:3px}
+  code{font-family:var(--mono);font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+  pre{font-family:var(--mono);font-size:14px;line-height:1.5;background:var(--card2);border:1px solid var(--line);border-radius:8px;
+    padding:12px 14px;overflow-x:auto;margin:10px 0}
+  .callout{border-left:3px solid var(--margin);background:var(--margin-soft);border-radius:0 8px 8px 0;padding:10px 14px;margin:14px 0}
+  .tablebox{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:10px 0}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+
+  /* Тесты */
+  .controls{display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+  .seg button{font:500 13px/1 var(--body);color:var(--muted);background:var(--card);border:none;padding:8px 12px;cursor:pointer}
+  .seg button+button{border-left:1px solid var(--line2)}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+  .ctl-label{font-family:var(--mono);font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-right:6px}
+  .q{border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px;background:var(--card)}
+  .q.is-ok{border-color:var(--ok);background:var(--ok-soft)}
+  .q.is-bad{border-color:var(--bad);background:var(--bad-soft)}
+  .qhead{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .tag{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:5px;border:1px solid var(--line2);color:var(--muted)}
+  .lvl-easy{color:var(--ok);border-color:var(--ok)} .lvl-med{color:var(--warn);border-color:var(--warn)} .lvl-hard{color:var(--bad);border-color:var(--bad)}
+  .qtext{font-weight:600;margin:0 0 10px}
+  .opts{display:grid;gap:7px}
+  .opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;background:var(--paper)}
+  .opt:hover{border-color:var(--line2)}
+  .opt input{margin-top:4px;accent-color:var(--accent)}
+  .opt.o-ok{border-color:var(--ok);background:var(--ok-soft)}
+  .opt.o-bad{border-color:var(--bad);background:var(--bad-soft)}
+  .q input[type=text]{width:100%;font:16px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:10px 12px}
+  .mrow{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;margin:7px 0}
+  .mrow .ml{flex:1 1 160px;font-weight:500}
+  .mrow select{flex:1 1 180px;max-width:100%;font:15px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:8px 10px}
+  .mrow select.s-ok{border-color:var(--ok)} .mrow select.s-bad{border-color:var(--bad)}
+  .explain{margin-top:10px;padding:10px 12px;border:1px dashed var(--line2);border-radius:8px;color:var(--muted);font-size:15px}
+  .btn{font:600 14px/1 var(--body);color:var(--accent-ink);background:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:10px 16px;cursor:pointer}
+  .btn.ghost{color:var(--ink);background:var(--card);border-color:var(--line2)}
+  .btn.small{padding:8px 12px;font-size:13px}
+  .q .btn{margin-top:12px}
+  .testbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+  .score{margin-left:auto;font-family:var(--mono);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .score b{color:var(--accent);font-size:17px}
+  .bar{height:6px;border-radius:99px;background:var(--card2);overflow:hidden;margin:12px 0 4px}
+  .bar>div{height:100%;width:0;background:var(--accent);transition:width .4s}
+  .empty{color:var(--faint);text-align:center;padding:18px;font-family:var(--mono);font-size:13px}
+
+  /* Карточки */
+  .deckmeta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin-bottom:10px}
+  .deckmeta b{color:var(--ok)}
+  .deck{position:relative;height:250px;perspective:1200px}
+  .fc{position:absolute;inset:0;cursor:pointer;border:none;background:none;padding:0;font:inherit;color:inherit;width:100%}
+  .fc .inner{position:relative;width:100%;height:100%;transition:transform .5s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d}
+  .fc.flipped .inner{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:26px;border-radius:10px;border:1px solid var(--line2);background:var(--card)}
+  .face.front{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+  .face.front .t{font-family:var(--display);font-weight:500;font-size:clamp(18px,4.6vw,23px);line-height:1.25}
+  .face.back{transform:rotateY(180deg);border-color:var(--accent);background:var(--card2)}
+  .face.back .t{font-size:16px}
+  .face .hint{position:absolute;bottom:12px;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.06em}
+  .learned-tag{position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:11px;color:var(--ok);border:1px solid var(--ok);border-radius:5px;padding:1px 6px}
+  .deckbar{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .nav{width:42px;height:42px;border-radius:50%;border:1px solid var(--line2);background:var(--card);color:var(--ink);font-size:18px;cursor:pointer}
+  .counter{font-family:var(--mono);font-size:14px;color:var(--muted);min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+
+  /* Определения */
+  .terms{display:grid;gap:8px;margin:10px 0 4px}
+  .term{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--paper)}
+  .term b{color:var(--accent)}
+  details{border:1px solid var(--line);border-radius:8px;margin:8px 0;background:var(--paper)}
+  summary{cursor:pointer;padding:12px 14px;font-weight:600;list-style:none;display:flex;gap:10px}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"+";font-family:var(--mono);color:var(--margin);font-weight:700}
+  details[open] summary::before{content:"−"}
+  details .ans{padding:0 14px 12px 34px;color:var(--muted)}
+
+  .cheat li{margin:7px 0}
+  footer{margin-top:34px;padding-top:14px;border-top:1px solid var(--line);text-align:center;font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+  footer a{color:var(--accent);text-decoration:none}
+
+  @media (prefers-reduced-motion: reduce){.fc .inner,.bar>div{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="top">
+      <span class="eyebrow" id="eyebrow">тренажёр к паре</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <a class="author" id="author" href="#" target="_blank" rel="noopener">автор <b></b></a>
+        <button class="themebtn" id="themeBtn" type="button">Тема</button>
+      </div>
+    </div>
+    <h1 id="pageTitle"></h1>
+    <p class="sub" id="pageSub"></p>
+    <div class="meta" id="pageMeta"></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="konspekt" type="button">Конспект</button>
+    <button class="tab" role="tab" data-tab="tests" type="button">Тесты</button>
+    <button class="tab" role="tab" data-tab="cards" type="button">Карточки</button>
+    <button class="tab" role="tab" data-tab="oral" type="button">Определения</button>
+    <button class="tab" role="tab" data-tab="cheat" type="button">Шпаргалка</button>
+  </nav>
+  <div class="topics" id="topics"></div>
+
+  <main>
+    <div class="panel" id="p-konspekt"></div>
+    <div class="panel" id="p-tests" hidden>
+      <div class="controls">
+        <span><span class="ctl-label">режим</span><span class="seg" id="modeSeg"></span></span>
+        <span><span class="ctl-label">сложность</span><span class="seg" id="levelSeg"></span></span>
+      </div>
+      <div id="qlist"></div>
+      <div class="bar"><div id="bar"></div></div>
+      <div class="testbar">
+        <button class="btn" id="checkAll" type="button">Проверить всё</button>
+        <button class="btn ghost" id="resetAll" type="button">Заново</button>
+        <span class="score" id="score"></span>
+      </div>
+    </div>
+    <div class="panel" id="p-cards" hidden>
+      <div class="deckmeta"><span>Нажми на карточку, чтобы перевернуть.</span><span id="learned"></span></div>
+      <div class="deck" id="deck"></div>
+      <div class="deckbar">
+        <button class="nav" id="prev" type="button" aria-label="Предыдущая">‹</button>
+        <button class="btn ghost small" id="again" type="button">Повторить</button>
+        <span class="counter" id="counter"></span>
+        <button class="btn small" id="know" type="button">Знаю</button>
+        <button class="nav" id="next" type="button" aria-label="Следующая">›</button>
+      </div>
+      <div style="text-align:center;margin-top:10px"><button class="btn ghost small" id="shuffle" type="button">Перемешать</button></div>
+    </div>
+    <div class="panel" id="p-oral" hidden></div>
+    <div class="panel" id="p-cheat" hidden></div>
+  </main>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* ===== ПОДПИСЬ (не менять) ===== */
+const AUTHOR = { nick: "@ainaynandonikai", url: "https://github.com/ainaynandonikai" };
+
+/* ===== ДАННЫЕ - меняется только этот объект ===== */
+const DATA = {
+  title: "Системы линейных алгебраических уравнений",
+  subtitle: "Метод Крамера, матричный метод, метод Гаусса, ранг матрицы, теорема Кронекера - Капелли и собственные значения - формулировки из лекции 2, задачи из лекции и ТР №1.",
+  meta: ["Высшая математика", "Лекция 2", "6 тем", "примеры из лекции и ТР №1, вариант 16"],
+  topics: [
+    {
+      id: "cramer", name: "Метод Крамера",
+      konspekt: `
+        <h3>Аналогия: замена игрока</h3>
+        <p>Матрица системы - команда из трёх игроков-столбцов: столбец при x, при y, при z. Чтобы узнать x, тренер снимает с поля столбец x и <mark>выпускает вместо него столбец правых частей</mark>. Определитель новой команды - Δx. Делим его на определитель исходной команды Δ - получаем x.</p>
+        <h3>Из лекции</h3>
+        <p>Рассмотрим систему из 3-х алгебраических уравнений с 3-мя неизвестными:</p>
+        <pre>a₁₁x + a₁₂y + a₁₃z = b₁
+a₂₁x + a₂₂y + a₂₃z = b₂       (1.1)
+a₃₁x + a₃₂y + a₃₃z = b₃</pre>
+        <div class="callout"><b>Теорема.</b> Если определитель матрицы системы (1.1) Δ отличен от нуля (Δ ≠ 0), то система имеет единственное решение, определяемое формулами Крамера: x = Δx / Δ, y = Δy / Δ, z = Δz / Δ.</div>
+        <pre>    | a₁₁  a₁₂  a₁₃ |
+Δ = | a₂₁  a₂₂  a₂₃ |
+    | a₃₁  a₃₂  a₃₃ |
+
+     | b₁  a₁₂  a₁₃ |
+Δx = | b₂  a₂₂  a₂₃ |
+     | b₃  a₃₂  a₃₃ |
+
+     | a₁₁  b₁  a₁₃ |
+Δy = | a₂₁  b₂  a₂₃ |
+     | a₃₁  b₃  a₃₃ |
+
+     | a₁₁  a₁₂  b₁ |
+Δz = | a₂₁  a₂₂  b₂ |
+     | a₃₁  a₃₂  b₃ |</pre>
+        <p>Словами: в Δx на месте столбца коэффициентов при x стоит столбец свободных членов b₁, b₂, b₃; в Δy - на месте столбца при y; в Δz - на месте столбца при z.</p>
+        <h3>Пример 1 из лекции (образец задачи из контрольной работы)</h3>
+        <p>Решить систему уравнений двумя способами. Способ 1 - метод Крамера. В лекции определители даны готовыми, здесь они расписаны по Саррюсу.</p>
+        <pre>3x +  y − 2z = 1
+2x − 2y +  z = 11
+5x + 3y − 3z = −2
+
+Δ = | 3   1  −2 |
+    | 2  −2   1 |
+    | 5   3  −3 |  =
+
+3·(−2)·(−3) + 1·1·5 + (−2)·2·3 = 18 + 5 − 12 = 11
+(−2)·(−2)·5 + 3·1·3 + 1·2·(−3) = 20 + 9 − 6 = 23
+Δ = 11 − 23 = −12</pre>
+        <pre>Δx = |  1   1  −2 |
+     | 11  −2   1 |
+     | −2   3  −3 |  =
+
+1·(−2)·(−3) + 1·1·(−2) + (−2)·11·3 = 6 − 2 − 66 = −62
+(−2)·(−2)·(−2) + 1·1·3 + 1·11·(−3) = −8 + 3 − 33 = −38
+Δx = −62 − (−38) = −24</pre>
+        <pre>Δy = | 3   1  −2 |
+     | 2  11   1 |
+     | 5  −2  −3 |  =
+
+3·11·(−3) + 1·1·5 + (−2)·2·(−2) = −99 + 5 + 8 = −86
+(−2)·11·5 + 3·1·(−2) + 1·2·(−3) = −110 − 6 − 6 = −122
+Δy = −86 − (−122) = 36</pre>
+        <pre>Δz = | 3   1   1 |
+     | 2  −2  11 |
+     | 5   3  −2 |  =
+
+3·(−2)·(−2) + 1·11·5 + 1·2·3 = 12 + 55 + 6 = 73
+1·(−2)·5 + 3·11·3 + 1·2·(−2) = −10 + 99 − 4 = 85
+Δz = 73 − 85 = −12</pre>
+        <pre>x = Δx / Δ = −24 / (−12) = 2
+y = Δy / Δ = 36 / (−12)  = −3
+z = Δz / Δ = −12 / (−12) = 1
+
+Проверка:
+3·2 − 3 − 2·1 = 1               верно
+2·2 − 2·(−3) + 1 = 11           верно
+5·2 + 3·(−3) − 3·1 = −2         верно</pre>
+        <p>Ответ: x = 2, y = −3, z = 1.</p>
+        <h3>ТР №1, вариант 16, задача 5а</h3>
+        <pre> x₁ + 3x₂ − 2x₃ = −13
+2x₁ −  x₂ +  x₃ = 3
+2x₁ − 2x₂ + 2x₃ = 8
+
+Δ = | 1   3  −2 |
+    | 2  −1   1 |
+    | 2  −2   2 |  =
+
+1·(−1)·2 + 3·1·2 + (−2)·2·(−2) = −2 + 6 + 8 = 12
+(−2)·(−1)·2 + 1·1·(−2) + 3·2·2 = 4 − 2 + 12 = 14
+Δ = 12 − 14 = −2 ≠ 0</pre>
+        <pre>Δx₁ = | −13   3  −2 |
+      |   3  −1   1 |
+      |   8  −2   2 |  =
+
+(−13)·(−1)·2 + 3·1·8 + (−2)·3·(−2) = 26 + 24 + 12 = 62
+(−2)·(−1)·8 + (−13)·1·(−2) + 3·3·2 = 16 + 26 + 18 = 60
+Δx₁ = 62 − 60 = 2</pre>
+        <pre>Δx₂ = | 1  −13  −2 |
+      | 2    3   1 |
+      | 2    8   2 |  =
+
+1·3·2 + (−13)·1·2 + (−2)·2·8 = 6 − 26 − 32 = −52
+(−2)·3·2 + 1·1·8 + (−13)·2·2 = −12 + 8 − 52 = −56
+Δx₂ = −52 − (−56) = 4</pre>
+        <pre>Δx₃ = | 1   3  −13 |
+      | 2  −1    3 |
+      | 2  −2    8 |  =
+
+1·(−1)·8 + 3·3·2 + (−13)·2·(−2) = −8 + 18 + 52 = 62
+(−13)·(−1)·2 + 1·3·(−2) + 3·2·8 = 26 − 6 + 48 = 68
+Δx₃ = 62 − 68 = −6</pre>
+        <pre>x₁ = 2 / (−2)  = −1
+x₂ = 4 / (−2)  = −2
+x₃ = −6 / (−2) = 3
+
+Проверка:
+−1 + 3·(−2) − 2·3 = −13      верно
+2·(−1) − (−2) + 3 = 3        верно
+2·(−1) − 2·(−2) + 2·3 = 8    верно</pre>
+        <p>Частая ошибка в Саррюсе: посчитать только три диагонали со знаком «+» и забыть вычесть три диагонали со знаком «−». В Примере 1 такая ошибка дала бы Δ = 11 вместо −12.</p>`,
+      terms: [
+        { term: "Определитель матрицы системы Δ", def: "определитель из коэффициентов при неизвестных: Δ = | a₁₁ a₁₂ a₁₃ ; a₂₁ a₂₂ a₂₃ ; a₃₁ a₃₂ a₃₃ |." },
+        { term: "Δx, Δy, Δz", def: "определители, в которых столбец коэффициентов при x (при y, при z) заменён столбцом свободных членов b₁, b₂, b₃." },
+        { term: "Формулы Крамера", def: "x = Δx / Δ, y = Δy / Δ, z = Δz / Δ; по теореме Крамера дают единственное решение, если Δ ≠ 0." }
+      ],
+      cards: [
+        { front: "Теорема Крамера", back: "Если определитель матрицы системы Δ отличен от нуля, то система имеет единственное решение, определяемое формулами Крамера." },
+        { front: "Формулы Крамера", back: "x = Δx / Δ, y = Δy / Δ, z = Δz / Δ." },
+        { front: "Как составить Δy?", back: "В Δ столбец коэффициентов при y заменить столбцом свободных членов b₁, b₂, b₃." },
+        { front: "Пример 1 лекции: Δ, Δx, Δy, Δz", back: "Δ = −12, Δx = −24, Δy = 36, Δz = −12 → x = 2, y = −3, z = 1." },
+        { front: "Вариант 16, 5а: все определители", back: "Δ = −2, Δx₁ = 2, Δx₂ = 4, Δx₃ = −6 → (−1; −2; 3)." },
+        { front: "Частая ошибка в Саррюсе", back: "Посчитать только три «+»-диагонали и забыть вычесть три «−»-диагонали." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Как получить определитель Δy?",
+          options: [{ t: "Заменить в Δ столбец при y столбцом свободных членов", correct: true }, { t: "Заменить в Δ вторую строку свободными членами", correct: false }, { t: "Вычеркнуть из Δ столбец при y", correct: false }, { t: "Умножить столбец при y на b₂", correct: false }],
+          explain: "Δy = | a₁₁ b₁ a₁₃ ; a₂₁ b₂ a₂₃ ; a₃₁ b₃ a₃₃ |: столбец при y уходит, на его место встают b₁, b₂, b₃." },
+        { type: "truefalse", level: "easy", q: "По теореме Крамера, если Δ ≠ 0, система имеет единственное решение.", answer: true,
+          explain: "Теорема: если определитель матрицы системы отличен от нуля, то система имеет единственное решение, определяемое формулами Крамера." },
+        { type: "fill", level: "med", q: "Пример 1 лекции: Δ = −12, Δy = 36. y = ___",
+          answers: ["-3", "−3", "y = -3", "y = −3", "y=-3", "y=−3"], explain: "y = Δy / Δ = 36 / (−12) = −3." },
+        { type: "single", level: "med", q: "Пример 1 лекции: Δ = | 3 1 −2 ; 2 −2 1 ; 5 3 −3 |. Чему равен Δ по Саррюсу?",
+          options: [{ t: "−12", correct: true }, { t: "11", correct: false }, { t: "34", correct: false }, { t: "12", correct: false }],
+          explain: "«+»-диагонали: 18 + 5 − 12 = 11. «−»-диагонали: 20 + 9 − 6 = 23. Δ = 11 − 23 = −12. Ответ 11 - если забыть вычесть вторую тройку, 34 - если сложить вместо вычитания." },
+        { type: "match", level: "med", q: "Сопоставь определитель и то, какой столбец в нём заменён столбцом свободных членов.",
+          pairs: [{ left: "Δ", right: "ничего не заменено" }, { left: "Δx", right: "столбец при x" }, { left: "Δy", right: "столбец при y" }, { left: "Δz", right: "столбец при z" }],
+          explain: "Индекс у Δ показывает, чей столбец заменили столбцом b₁, b₂, b₃." },
+        { type: "truefalse", level: "hard", q: "Если Δ = 0, система точно не имеет решений.", answer: false,
+          explain: "Замечание 2 из лекции: если определитель системы равен нулю, то система либо не имеет решений вообще, либо имеет бесконечное множество решений." },
+        { type: "fill", level: "hard", q: "ТР №1, вариант 16, вторая система 5а: −2x₁ + x₂ + 2x₃ = 2, x₁ + 2x₂ − 2x₃ = −8, 2x₁ + x₂ − 4x₃ = −8. Δ = ___",
+          answers: ["6"], explain: "Δ = | −2 1 2 ; 1 2 −2 ; 2 1 −4 |. «+»: (−2)·2·(−4) + 1·(−2)·2 + 2·1·1 = 16 − 4 + 2 = 14. «−»: 2·2·2 + (−2)·(−2)·1 + 1·1·(−4) = 8 + 4 − 4 = 8. Δ = 14 − 8 = 6." },
+        { type: "fill", level: "hard", q: "Та же вторая система (Δ = 6). Посчитай Δx₁ по Саррюсу: Δx₁ = ___",
+          answers: ["-12", "−12"], explain: "Δx₁ = | 2 1 2 ; −8 2 −2 ; −8 1 −4 |. «+»: 2·2·(−4) + 1·(−2)·(−8) + 2·(−8)·1 = −16 + 16 − 16 = −16. «−»: 2·2·(−8) + 2·(−2)·1 + 1·(−8)·(−4) = −32 − 4 + 32 = −4. Δx₁ = −16 − (−4) = −12, x₁ = −12 / 6 = −2. Остальные неизвестные дробные: x₂ = −8/3, x₃ = 1/3." }
+      ],
+      oral: [
+        { q: "Сформулируйте теорему Крамера.", a: "Если определитель матрицы системы (1.1) Δ отличен от нуля (Δ ≠ 0), то система имеет единственное решение, определяемое формулами Крамера: x = Δx / Δ, y = Δy / Δ, z = Δz / Δ." },
+        { q: "Дайте определение определителей Δ, Δx, Δy, Δz в формулах Крамера.", a: "Δ - определитель матрицы системы, составленный из коэффициентов при неизвестных. Δx, Δy, Δz получаются из Δ заменой столбца коэффициентов при x, при y или при z столбцом свободных членов b₁, b₂, b₃ (в лекции они заданы формулами)." },
+        { q: "При каких условиях применим метод Крамера?", a: "Замечание 1: метод Крамера и матричный метод применимы для систем любого конечного порядка при двух условиях: количество уравнений совпадает с количеством неизвестных и определитель системы отличен от нуля." }
+      ],
+      cheat: [
+        "<b>Δ ≠ 0</b> → единственное решение: <b>x = Δx / Δ, y = Δy / Δ, z = Δz / Δ</b>.",
+        "Δx - в Δ столбец при x заменён столбцом <b>b₁, b₂, b₃</b>.",
+        "Каждый определитель - Саррюсом: (сумма «+»-диагоналей) − (сумма «−»-диагоналей).",
+        "Пример 1: Δ = −12 → <b>(2; −3; 1)</b>. Вар. 16, 5а: Δ = −2 → <b>(−1; −2; 3)</b>."
+      ]
+    },
+    {
+      id: "matr", name: "Матричный метод",
+      konspekt: `
+        <h3>Аналогия: деление без деления</h3>
+        <p>Как решают 5x = 10? Умножают обе части на 1/5: x = 10/5 = 2. С матрицами делить нельзя, но можно умножить на обратную матрицу - она играет роль 1/5. Отсюда формула <mark>X = A⁻¹ · B</mark>.</p>
+        <h3>Из лекции</h3>
+        <p>Обозначим через A матрицу системы (1.1), т.е. матрицу, составленную из коэффициентов при неизвестных, через X - матрицу-столбец из неизвестных и через B - матрицу-столбец правых частей:</p>
+        <pre>    ( a₁₁  a₁₂  a₁₃ )
+A = ( a₂₁  a₂₂  a₂₃ )
+    ( a₃₁  a₃₂  a₃₃ )
+
+    ( x )        ( b₁ )
+X = ( y )    B = ( b₂ )
+    ( z )        ( b₃ )</pre>
+        <p>Принимая во внимание правило умножения матриц, можно систему линейных уравнений (1.1) записать в виде матричного уравнения:</p>
+        <pre>A · X = B,</pre>
+        <p>решение которого имеет вид</p>
+        <pre>X = A⁻¹ · B.</pre>
+        <h3>Что нужно из лекции 1</h3>
+        <p>Матрица A⁻¹ называется обратной к квадратной матрице A, если A · A⁻¹ = A⁻¹ · A = E. Для того, чтобы матрица A имела обратную, необходимо и достаточно, чтобы она была невырожденной, т.е. Δ(A) ≠ 0. Обратная матрица есть разделенная на Δ(A) транспонированная матрица алгебраических дополнений элементов матрицы A:</p>
+        <pre>               ( A₁₁  A₂₁  A₃₁ )
+A⁻¹ = 1/Δ(A) · ( A₁₂  A₂₂  A₃₂ )
+               ( A₁₃  A₂₃  A₃₃ )</pre>
+        <p>Алгебраическим дополнением элемента aik называется число Aik = (−1)^(i+k) · Mik, где Mik - определитель, составленный из элементов, оставшихся после вычеркивания из матрицы i-той строки и k-того столбца. Знак по шахматке: + − + / − + − / + − +.</p>
+        <div class="callout"><b>Главное:</b> дополнения строки i записываются в столбец i (транспонирование) - самое частое место ошибки.</div>
+        <h3>Пример 1 из лекции - способ 2, матричный метод</h3>
+        <pre>3x +  y − 2z = 1
+2x − 2y +  z = 11
+5x + 3y − 3z = −2
+
+    ( 3   1  −2 )
+A = ( 2  −2   1 )
+    ( 5   3  −3 )</pre>
+        <p>Вычислим все алгебраические дополнения:</p>
+        <pre>A₁₁ = +((−2)·(−3) − 1·3)     = 3
+A₂₁ = −(1·(−3) − (−2)·3)     = −3
+A₃₁ = +(1·1 − (−2)·(−2))     = −3
+A₁₂ = −(2·(−3) − 1·5)        = 11
+A₂₂ = +(3·(−3) − (−2)·5)     = 1
+A₃₂ = −(3·1 − (−2)·2)        = −7
+A₁₃ = +(2·3 − (−2)·5)        = 16
+A₂₃ = −(3·3 − 1·5)           = −4
+A₃₃ = +(3·(−2) − 1·2)        = −8</pre>
+        <p>Определитель матрицы найден выше (фактически это Δ) и равен −12. Следовательно,</p>
+        <pre>                (  3  −3  −3 )
+A⁻¹ = 1/(−12) · ( 11   1  −7 )
+                ( 16  −4  −8 )
+
+x = (3·1 − 3·11 − 3·(−2)) / (−12)  = −24 / (−12) = 2
+y = (11·1 + 1·11 − 7·(−2)) / (−12) = 36 / (−12)  = −3
+z = (16·1 − 4·11 − 8·(−2)) / (−12) = −12 / (−12) = 1</pre>
+        <p>Ответ: x = 2, y = −3, z = 1. Заметь: числа −24, 36, −12 в числителях - ровно Δx, Δy, Δz из способа 1, знаменатель тот же Δ = −12. Поэтому оба способа дают один ответ.</p>
+        <h3>ТР №1, вариант 16, задача 5а</h3>
+        <pre> x₁ + 3x₂ − 2x₃ = −13
+2x₁ −  x₂ +  x₃ = 3
+2x₁ − 2x₂ + 2x₃ = 8
+
+Δ(A) = −2 ≠ 0   (Саррюс - в теме «Метод Крамера»)
+
+A₁₁ = +((−1)·2 − 1·(−2))     = 0
+A₂₁ = −(3·2 − (−2)·(−2))     = −2
+A₃₁ = +(3·1 − (−2)·(−1))     = 1
+A₁₂ = −(2·2 − 1·2)           = −2
+A₂₂ = +(1·2 − (−2)·2)        = 6
+A₃₂ = −(1·1 − (−2)·2)        = −5
+A₁₃ = +(2·(−2) − (−1)·2)     = −2
+A₂₃ = −(1·(−2) − 3·2)        = 8
+A₃₃ = +(1·(−1) − 3·2)        = −7
+
+               (  0  −2   1 )
+A⁻¹ = 1/(−2) · ( −2   6  −5 )
+               ( −2   8  −7 )
+
+x₁ = ( 0·(−13) − 2·3 + 1·8) / (−2) = 2 / (−2)  = −1
+x₂ = (−2·(−13) + 6·3 − 5·8) / (−2) = 4 / (−2)  = −2
+x₃ = (−2·(−13) + 8·3 − 7·8) / (−2) = −6 / (−2) = 3</pre>
+        <p>Ответ: x₁ = −1, x₂ = −2, x₃ = 3.</p>
+        <h3>Замечания из лекции</h3>
+        <p><b>Замечание 1.</b> Метод Крамера и матричный метод применимы для систем любого конечного порядка при двух условиях: количество уравнений совпадает с количеством неизвестных и определитель системы отличен от нуля.</p>
+        <p><b>Замечание 2.</b> Если определитель системы равен нулю, то система либо не имеет решений вообще, либо имеет бесконечное множество решений.</p>`,
+      terms: [
+        { term: "Матрица системы A", def: "матрица, составленная из коэффициентов при неизвестных." },
+        { term: "X", def: "матрица-столбец из неизвестных." },
+        { term: "B", def: "матрица-столбец правых частей." },
+        { term: "Матричное уравнение", def: "A · X = B, решение которого имеет вид X = A⁻¹ · B." },
+        { term: "Обратная матрица (лекция 1)", def: "матрица A⁻¹, для которой A · A⁻¹ = A⁻¹ · A = E; есть разделенная на Δ(A) транспонированная матрица алгебраических дополнений; существует тогда и только тогда, когда Δ(A) ≠ 0." }
+      ],
+      cards: [
+        { front: "Матричная запись системы", back: "A · X = B: A - матрица системы, X - матрица-столбец из неизвестных, B - матрица-столбец правых частей." },
+        { front: "Решение матричного уравнения", back: "X = A⁻¹ · B." },
+        { front: "Как найти A⁻¹ (лекция 1)?", back: "Транспонированную матрицу алгебраических дополнений разделить на Δ(A)." },
+        { front: "Замечание 1", back: "Крамер и матричный метод применимы, если количество уравнений совпадает с количеством неизвестных и определитель системы отличен от нуля." },
+        { front: "Замечание 2", back: "Если определитель системы равен нулю, система либо не имеет решений вообще, либо имеет бесконечное множество решений." },
+        { front: "Пример 1 лекции: A⁻¹", back: "A⁻¹ = 1/(−12) · (3 −3 −3; 11 1 −7; 16 −4 −8)." },
+        { front: "Вариант 16, 5а: ответ", back: "x₁ = −1, x₂ = −2, x₃ = 3." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Как записывается система (1.1) в виде матричного уравнения?",
+          options: [{ t: "A · X = B", correct: true }, { t: "X · A = B", correct: false }, { t: "A · B = X", correct: false }, { t: "A + X = B", correct: false }],
+          explain: "A - матрица системы, X - матрица-столбец из неизвестных, B - матрица-столбец правых частей: A · X = B." },
+        { type: "fill", level: "easy", q: "Решение матричного уравнения A · X = B имеет вид X = ___ · B",
+          answers: ["A⁻¹", "A^-1", "A^(-1)", "A-1", "A^−1", "A^(−1)", "A−1", "обратная матрица", "обратная матрица A"],
+          explain: "X = A⁻¹ · B, обратная матрица стоит слева." },
+        { type: "truefalse", level: "med", q: "Матричный метод применим к системе, в которой уравнений больше, чем неизвестных.", answer: false,
+          explain: "Замечание 1: нужно, чтобы количество уравнений совпадало с количеством неизвестных и определитель системы был отличен от нуля." },
+        { type: "multiple", level: "med", q: "При каких условиях применимы метод Крамера и матричный метод (Замечание 1)?",
+          options: [{ t: "Количество уравнений совпадает с количеством неизвестных", correct: true }, { t: "Определитель системы отличен от нуля", correct: true }, { t: "Система только 3-го порядка", correct: false }, { t: "Определитель системы равен нулю", correct: false }, { t: "Все коэффициенты положительны", correct: false }],
+          explain: "Методы применимы для систем любого конечного порядка при двух условиях: уравнений столько же, сколько неизвестных, и определитель системы не равен нулю." },
+        { type: "single", level: "med", q: "Пример 1 лекции: первая строка матрицы дополнений (после транспонирования) - (3 −3 −3), Δ = −12, B = (1; 11; −2). Чему равен x?",
+          options: [{ t: "2", correct: true }, { t: "−2", correct: false }, { t: "−24", correct: false }, { t: "1/2", correct: false }],
+          explain: "x = (3·1 − 3·11 − 3·(−2)) / (−12) = (3 − 33 + 6) / (−12) = −24 / (−12) = 2." },
+        { type: "match", level: "med", q: "Сопоставь обозначение и его смысл в лекции.",
+          pairs: [{ left: "A", right: "матрица, составленная из коэффициентов при неизвестных" }, { left: "X", right: "матрица-столбец из неизвестных" }, { left: "B", right: "матрица-столбец правых частей" }, { left: "A⁻¹", right: "обратная матрица" }],
+          explain: "Формулировки из лекции: A - матрица системы, X и B - матрицы-столбцы." },
+        { type: "fill", level: "hard", q: "Пример 1 лекции (3x + y − 2z = 1, 2x − 2y + z = 11, 5x + 3y − 3z = −2): (x; y; z) = ___",
+          answers: ["(2; -3; 1)", "(2; −3; 1)", "(2;-3;1)", "(2;−3;1)", "(2, -3, 1)", "(2, −3, 1)", "(2,-3,1)", "(2,−3,1)", "2 -3 1", "2 −3 1", "2; -3; 1", "2; −3; 1", "2, -3, 1", "2, −3, 1", "x = 2, y = -3, z = 1", "x = 2, y = −3, z = 1", "x=2, y=-3, z=1", "x=2, y=−3, z=1"],
+          explain: "x = −24 / (−12) = 2, y = 36 / (−12) = −3, z = −12 / (−12) = 1. Проверка: 6 − 3 − 2 = 1, 4 + 6 + 1 = 11, 10 − 9 − 3 = −2." },
+        { type: "fill", level: "hard", q: "ТР №1, вариант 16, 5а: Δ(A) = −2, вторая строка транспонированной матрицы дополнений (−2 6 −5), B = (−13; 3; 8). x₂ = ___",
+          answers: ["-2", "−2"], explain: "x₂ = (−2·(−13) + 6·3 − 5·8) / (−2) = (26 + 18 − 40) / (−2) = 4 / (−2) = −2." }
+      ],
+      oral: [
+        { q: "Дайте определение матрицы системы.", a: "Матрица системы A - матрица, составленная из коэффициентов при неизвестных." },
+        { q: "Как записать систему в матричном виде и чему равно решение?", a: "Принимая во внимание правило умножения матриц, можно систему линейных уравнений (1.1) записать в виде матричного уравнения A · X = B, решение которого имеет вид X = A⁻¹ · B." },
+        { q: "Сформулируйте замечания 1 и 2 к методу Крамера и матричному методу.", a: "Замечание 1. Метод Крамера и матричный метод применимы для систем любого конечного порядка при двух условиях: количество уравнений совпадает с количеством неизвестных и определитель системы отличен от нуля. Замечание 2. Если определитель системы равен нулю, то система либо не имеет решений вообще, либо имеет бесконечное множество решений." }
+      ],
+      cheat: [
+        "<b>A · X = B</b> → <b>X = A⁻¹ · B</b>.",
+        "A⁻¹ = транспонированная матрица дополнений, делённая на <b>Δ(A)</b> (лекция 1).",
+        "Работает, если уравнений столько же, сколько неизвестных, и <b>Δ ≠ 0</b>. Δ = 0 - либо нет решений, либо бесконечно много.",
+        "Пример 1: числители (−24; 36; −12) = (Δx; Δy; Δz) → <b>(2; −3; 1)</b>."
+      ]
+    },
+    {
+      id: "gauss", name: "Метод Гаусса",
+      konspekt: `
+        <h3>Аналогия: лестница</h3>
+        <p><b>Прямой ход</b> - строим лестницу: делаем нули под диагональю, получаем верхнетреугольную матрицу. <b>Обратный ход</b> - убираем всё и над диагональю, пока слева не останется единичная матрица. Тогда справа за чертой стоит готовый ответ.</p>
+        <h3>Зачем нужен</h3>
+        <p>Как было отмечено выше, метод Крамера и матричный метод имеют один существенный недостаток: они неприменимы, если определитель системы равен нулю. В связи с этим, рассмотрим еще один, наиболее универсальный метод решения систем линейных алгебраических уравнений - метод Гаусса. (Требование, чтобы число уравнений совпадало с числом неизвестных, для метода Гаусса необязательно.)</p>
+        <h3>Определения из лекции</h3>
+        <ul>
+          <li><b>Расширенной матрицей системы</b> называется матрица системы, дополненная столбцом свободных членов.</li>
+          <li>Расширенная матрица системы называется <b>верхнетреугольной</b>, если в матрице системы все элементы ниже главной диагонали равны нулю.</li>
+          <li>Расширенную матрицу системы мы будем называть <b>диагональной</b>, если матрица системы представляет собой единичную.</li>
+        </ul>
+        <pre>расширенная    верхнетреугольная   диагональная
+( * * * | * )  ( * * * | * )       ( 1 0 0 | * )
+( * * * | * )  ( 0 * * | * )       ( 0 1 0 | * )
+( * * * | * )  ( 0 0 * | * )       ( 0 0 1 | * )</pre>
+        <p>К <b>элементарным преобразованиям расширенной матрицы</b> системы относятся преобразования трех типов (Ci - i-я строка):</p>
+        <ol>
+          <li>Перемена местами любых двух строк: Ci ↔ Cj, i ≠ j.</li>
+          <li>Умножение любой строки на любое число, отличное от нуля: α·Ci, α ∈ R, α ≠ 0.</li>
+          <li>Прибавление к любой строке любой другой, умноженной на произвольное число: Ci + α·Cj, i ≠ j, α ∈ R.</li>
+        </ol>
+        <p>Известно, что элементарные преобразования расширенной матрицы системы приводят к эквивалентной матрице, т.е. система линейных алгебраических уравнений, соответствующая полученной матрице, имеет те же решения, что и исходная.</p>
+        <div class="callout"><b>Идея метода Гаусса</b> заключается в том, чтобы с помощью элементарных преобразований от расширенной матрицы системы перейти вначале к верхнетреугольной матрице (<mark>прямой ход метода Гаусса</mark>), а затем и к диагональной (<mark>обратный ход метода Гаусса</mark>).</div>
+        <p><b>Ведущий элемент</b> - элемент, с помощью которого удобно будет сделать нули под ним. Удобнее всего, когда это единица.</p>
+        <ul>
+          <li>Если при переходе к верхнетреугольной матрице в матрице системы не возникло ни одной нулевой строки (это соответствует тому, что определитель исходной системы отличен от нуля), то система имеет единственное решение. Его легко найти, исходя из диагонального вида: x₁ = b₁″, x₂ = b₂″, …, xₙ = bₙ″.</li>
+          <li>Если при переходе к верхнетреугольной матрице в матрице системы возникает хотя бы одна нулевая строка (это означает, что определитель исходной системы равен нулю), то система либо не имеет решения вовсе, либо имеет бесчисленное множество решений.</li>
+        </ul>
+        <h3>Пример 2 из лекции - единственное решение</h3>
+        <pre>2x −  y + 3z = 8
+3x + 2y +  z = 5
+ x − 3y + 5z = 10
+
+( 2  −1   3 |  8 )
+( 3   2   1 |  5 )
+( 1  −3   5 | 10 )
+
+C₁ ↔ C₃ (ведущий элемент - единица):
+( 1  −3   5 | 10 )
+( 3   2   1 |  5 )
+( 2  −1   3 |  8 )
+
+C₂ − 3C₁,  C₃ − 2C₁:
+( 1  −3    5 |  10 )
+( 0  11  −14 | −25 )
+( 0   5   −7 | −12 )
+
+C₂ − 2C₃ (создаём единицу во втором столбце):
+( 1  −3   5 |  10 )
+( 0   1   0 |  −1 )
+( 0   5  −7 | −12 )
+
+C₃ − 5C₂:
+( 1  −3   5 | 10 )
+( 0   1   0 | −1 )
+( 0   0  −7 | −7 )
+
+(−1/7)·C₃:
+( 1  −3   5 | 10 )
+( 0   1   0 | −1 )
+( 0   0   1 |  1 )    ← верхнетреугольный вид
+
+Обратный ход.  C₁ − 5C₃:
+( 1  −3   0 |  5 )
+( 0   1   0 | −1 )
+( 0   0   1 |  1 )
+
+C₁ + 3C₂:
+( 1   0   0 |  2 )
+( 0   1   0 | −1 )
+( 0   0   1 |  1 )    ← диагональный вид</pre>
+        <p>Ответ: x = 2, y = −1, z = 1. Проверка (в лекции - самостоятельно): 2·2 − (−1) + 3·1 = 8, 3·2 + 2·(−1) + 1 = 5, 2 − 3·(−1) + 5·1 = 10.</p>
+        <h3>Пример 3 из лекции - решений нет</h3>
+        <pre> 3x + 2y +  z = 4
+−2x − 5y + 2z = −1
+  x − 3y + 3z = 5
+
+(  3   2   1 |  4 )
+( −2  −5   2 | −1 )
+(  1  −3   3 |  5 )
+
+C₁ ↔ C₃:
+(  1  −3   3 |  5 )
+( −2  −5   2 | −1 )
+(  3   2   1 |  4 )
+
+C₂ + 2C₁,  C₃ − 3C₁:
+( 1   −3   3 |   5 )
+( 0  −11   8 |   9 )
+( 0   11  −8 | −11 )
+
+C₃ + C₂:
+( 1   −3   3 |  5 )
+( 0  −11   8 |  9 )
+( 0    0   0 | −2 )</pre>
+        <p>Распишем последнюю строку полученной матрицы в виде уравнения: 0·x + 0·y + 0·z = −2. Очевидно, что это уравнение, а значит и вся система, решений не имеет. Как весы, на которых ничего не лежит, а стрелка показывает −2 кг: так не бывает ни при каких x, y, z.</p>
+        <h3>Пример 4 из лекции - бесчисленное множество решений</h3>
+        <pre> x₁ −  x₂ + 2x₃ = 1
+4x₁ + 2x₂ −  x₃ = 2
+5x₁ +  x₂ +  x₃ = 3
+
+( 1  −1   2 | 1 )
+( 4   2  −1 | 2 )
+( 5   1   1 | 3 )
+
+C₂ − 4C₁,  C₃ − 5C₁:
+( 1  −1   2 |  1 )
+( 0   6  −9 | −2 )
+( 0   6  −9 | −2 )
+
+C₃ − C₂:
+( 1  −1   2 |  1 )
+( 0   6  −9 | −2 )
+( 0   0   0 |  0 )</pre>
+        <p>В отличие от предыдущего примера, последняя строка непротиворечива. Она указывает на то, что третье уравнение системы является следствием первых двух. Таким образом, мы, фактически, получили систему из двух уравнений с тремя неизвестными. Такая система имеет бесчисленное множество решений. Для того чтобы их найти, одну из переменных (её называют <b>свободной</b>) переносят в правую часть расширенной матрицы, а остальные переменные (их называют <b>базисными</b> или связными) выражают через эту свободную.</p>
+        <pre>( 1  −1 | 1 − 2x₃  )
+( 0   6 | −2 + 9x₃ )
+
+(1/6)·C₂:
+( 1  −1 | 1 − 2x₃       )
+( 0   1 | −1/3 + 3/2·x₃ )
+
+C₁ + C₂:
+( 1   0 | 2/3 − 1/2·x₃  )
+( 0   1 | −1/3 + 3/2·x₃ )
+
+x₁ = 2/3 − 1/2·x₃,   x₂ = −1/3 + 3/2·x₃,   x₃ = x₃</pre>
+        <p>Это <b>общее решение</b> системы. Присваивая свободной переменной x₃ конкретные значения, можно получать <b>частные решения</b>, например, (2/3; −1/3; 0), (−1/3; 8/3; 2) и т.д.</p>
+        <h3>Пример 5 из лекции - система 4-го порядка</h3>
+        <p>Отметим ещё одно достоинство метода Гаусса. Для систем линейных уравнений 4-го порядка и выше метод Гаусса оказывается эффективнее метода Крамера и матричного метода и приводит к решению гораздо быстрее.</p>
+        <pre>2x₁ + 3x₂ + 4x₃ +  x₄ = 7
+ x₁ − 2x₂ + 2x₃ + 3x₄ = 6
+3x₁ + 5x₂ −  x₃ + 4x₄ = −1
+5x₁ + 4x₂ + 2x₃ −  x₄ = −2
+
+C₁ ↔ C₂, затем C₂ − 2C₁, C₃ − 3C₁, C₄ − 5C₁:
+( 1  −2   2    3 |   6 )
+( 0   7   0   −5 |  −5 )
+( 0  11  −7   −5 | −19 )
+( 0  14  −8  −16 | −32 )
+
+C₄ − C₃, затем C₂ − 2C₄:
+( 1  −2   2    3 |   6 )
+( 0   1   2   17 |  21 )
+( 0  11  −7   −5 | −19 )
+( 0   3  −1  −11 | −13 )
+
+C₃ − 11C₂, C₄ − 3C₂, затем C₃·(−1), C₄·(−1):
+( 1  −2   2    3 |   6 )
+( 0   1   2   17 |  21 )
+( 0   0  29  192 | 250 )
+( 0   0   7   62 |  76 )
+
+C₃ − 4C₄, затем C₄ − 7C₃:
+( 1  −2   2    3 |   6 )
+( 0   1   2   17 |  21 )
+( 0   0   1  −56 | −54 )
+( 0   0   0  454 | 454 )
+
+C₄·1/454, затем C₁ − 3C₄, C₂ − 17C₄, C₃ + 56C₄:
+( 1  −2   2   0 | 3 )
+( 0   1   2   0 | 4 )
+( 0   0   1   0 | 2 )
+( 0   0   0   1 | 1 )
+
+C₁ − 2C₃, C₂ − 2C₃, затем C₁ + 2C₂:
+( 1   0   0   0 | −1 )
+( 0   1   0   0 |  0 )
+( 0   0   1   0 |  2 )
+( 0   0   0   1 |  1 )</pre>
+        <p>Ответ: x₁ = −1, x₂ = 0, x₃ = 2, x₄ = 1. Проверка: 2·(−1) + 0 + 4·2 + 1 = 7, −1 − 0 + 2·2 + 3·1 = 6, 3·(−1) + 0 − 2 + 4·1 = −1, 5·(−1) + 0 + 2·2 − 1 = −2.</p>
+        <h3>ТР №1, вариант 16, задача 5б</h3>
+        <pre>2x₁ +  x₂ − 2x₃ +  x₄ = −9
+ x₁ − 2x₂ −  x₃ + 2x₄ = 2
+2x₁ +  x₂        −  x₄ = −5
+2x₁ +  x₂ −  x₃ −  x₄ = −8
+
+( 2   1  −2   1 | −9 )
+( 1  −2  −1   2 |  2 )
+( 2   1   0  −1 | −5 )
+( 2   1  −1  −1 | −8 )
+
+C₁ ↔ C₂, затем C₂ − 2C₁, C₃ − 2C₁, C₄ − 2C₁:
+( 1  −2  −1   2 |   2 )
+( 0   5   0  −3 | −13 )
+( 0   5   2  −5 |  −9 )
+( 0   5   1  −5 | −12 )
+
+C₃ − C₂, C₄ − C₂:
+( 1  −2  −1   2 |   2 )
+( 0   5   0  −3 | −13 )
+( 0   0   2  −2 |   4 )
+( 0   0   1  −2 |   1 )
+
+C₃ ↔ C₄ (единица - ведущий элемент), затем C₄ − 2C₃:
+( 1  −2  −1   2 |   2 )
+( 0   5   0  −3 | −13 )
+( 0   0   1  −2 |   1 )
+( 0   0   0   2 |   2 )
+
+(1/2)·C₄:
+( 1  −2  −1   2 |   2 )
+( 0   5   0  −3 | −13 )
+( 0   0   1  −2 |   1 )
+( 0   0   0   1 |   1 )    ← верхнетреугольный вид
+
+Обратный ход.  C₁ − 2C₄, C₂ + 3C₄, C₃ + 2C₄:
+( 1  −2  −1   0 |   0 )
+( 0   5   0   0 | −10 )
+( 0   0   1   0 |   3 )
+( 0   0   0   1 |   1 )
+
+(1/5)·C₂, затем C₁ + C₃, затем C₁ + 2C₂:
+( 1   0   0   0 | −1 )
+( 0   1   0   0 | −2 )
+( 0   0   1   0 |  3 )
+( 0   0   0   1 |  1 )    ← диагональный вид</pre>
+        <p>Ответ: x₁ = −1, x₂ = −2, x₃ = 3, x₄ = 1. Проверка: 2·(−1) + (−2) − 2·3 + 1 = −9, −1 − 2·(−2) − 3 + 2·1 = 2, 2·(−1) + (−2) − 1 = −5, 2·(−1) + (−2) − 3 − 1 = −8.</p>`,
+      terms: [
+        { term: "Расширенная матрица системы", def: "матрица системы, дополненная столбцом свободных членов." },
+        { term: "Верхнетреугольная расширенная матрица", def: "расширенная матрица системы, у которой в матрице системы все элементы ниже главной диагонали равны нулю." },
+        { term: "Диагональная расширенная матрица", def: "расширенная матрица системы, у которой матрица системы представляет собой единичную." },
+        { term: "Элементарные преобразования расширенной матрицы", def: "1) перемена местами любых двух строк; 2) умножение любой строки на любое число, отличное от нуля; 3) прибавление к любой строке любой другой, умноженной на произвольное число." },
+        { term: "Прямой ход метода Гаусса", def: "переход от расширенной матрицы системы к верхнетреугольной матрице." },
+        { term: "Обратный ход метода Гаусса", def: "переход от верхнетреугольной матрицы к диагональной." },
+        { term: "Ведущий элемент", def: "элемент, с помощью которого удобно будет сделать нули под ним." },
+        { term: "Свободная и базисные переменные", def: "свободную переменную переносят в правую часть расширенной матрицы, а остальные переменные (базисные, или связные) выражают через эту свободную." }
+      ],
+      cards: [
+        { front: "Расширенная матрица системы", back: "Матрица системы, дополненная столбцом свободных членов." },
+        { front: "Идея метода Гаусса", back: "Элементарными преобразованиями перейти от расширенной матрицы к верхнетреугольной (прямой ход), а затем к диагональной (обратный ход)." },
+        { front: "Три типа элементарных преобразований", back: "Ci ↔ Cj;  α·Ci, α ≠ 0;  Ci + α·Cj." },
+        { front: "Нулевой строки в матрице системы не возникло", back: "Определитель отличен от нуля, решение единственное; его читают из диагонального вида." },
+        { front: "Возникла нулевая строка в матрице системы", back: "Определитель равен нулю: система либо не имеет решения вовсе, либо имеет бесчисленное множество решений." },
+        { front: "Пример 3: последняя строка (0 0 0 | −2)", back: "0·x + 0·y + 0·z = −2 - уравнение, а значит и вся система, решений не имеет." },
+        { front: "Пример 4: последняя строка (0 0 0 | 0)", back: "Третье уравнение - следствие первых двух. Бесчисленное множество решений, x₃ - свободная переменная." },
+        { front: "Вариант 16, 5б: ответ", back: "x₁ = −1, x₂ = −2, x₃ = 3, x₄ = 1." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Что называется расширенной матрицей системы?",
+          options: [{ t: "Матрица системы, дополненная столбцом свободных членов", correct: true }, { t: "Матрица системы, дополненная строкой неизвестных", correct: false }, { t: "Транспонированная матрица системы", correct: false }, { t: "Матрица алгебраических дополнений", correct: false }],
+          explain: "Определение из лекции: расширенной матрицей системы называется матрица системы, дополненная столбцом свободных членов." },
+        { type: "truefalse", level: "easy", q: "Прямой ход метода Гаусса - переход к верхнетреугольной матрице, обратный ход - к диагональной.", answer: true,
+          explain: "Так сформулирована идея метода Гаусса в лекции." },
+        { type: "multiple", level: "med", q: "Какие преобразования относятся к элементарным преобразованиям расширенной матрицы?",
+          options: [{ t: "Перемена местами любых двух строк", correct: true }, { t: "Умножение любой строки на число, отличное от нуля", correct: true }, { t: "Прибавление к строке другой строки, умноженной на произвольное число", correct: true }, { t: "Умножение строки на 0", correct: false }, { t: "Вычёркивание строки, в которой встретился ноль", correct: false }],
+          explain: "Три типа из лекции: Ci ↔ Cj; α·Ci при α ≠ 0; Ci + α·Cj. Они приводят к эквивалентной матрице - решения не меняются." },
+        { type: "single", level: "med", q: "Пример 3 лекции: после преобразований последняя строка (0 0 0 | −2). Что это значит?",
+          options: [{ t: "Система решений не имеет", correct: true }, { t: "z = −2", correct: false }, { t: "Система имеет бесчисленное множество решений", correct: false }, { t: "Строку можно отбросить и решать дальше", correct: false }],
+          explain: "0·x + 0·y + 0·z = −2 - такое уравнение, а значит и вся система, решений не имеет." },
+        { type: "truefalse", level: "med", q: "Строка (0 0 0 | 0) в примере 4 означает, что система несовместна.", answer: false,
+          explain: "Такая строка непротиворечива: третье уравнение - следствие первых двух. Система имеет бесчисленное множество решений." },
+        { type: "fill", level: "hard", q: "Пример 2 лекции: верхнетреугольный вид (1 −3 5 | 10), (0 1 0 | −1), (0 0 1 | 1). После C₁ − 5C₃ и C₁ + 3C₂ получаем x = ___",
+          answers: ["2", "x = 2", "x=2"], explain: "C₁ − 5C₃: (1 −3 0 | 5). C₁ + 3C₂: (1 0 0 | 5 − 3) = (1 0 0 | 2). Ответ x = 2, y = −1, z = 1." },
+        { type: "single", level: "hard", q: "Пример 4 лекции: x₁ = 2/3 − 1/2·x₃, x₂ = −1/3 + 3/2·x₃. Какое частное решение получится при x₃ = 2?",
+          options: [{ t: "(−1/3; 8/3; 2)", correct: true }, { t: "(2/3; −1/3; 0)", correct: false }, { t: "(−1/3; 8/3; 0)", correct: false }, { t: "(1; 2; 2)", correct: false }],
+          explain: "x₁ = 2/3 − 1 = −1/3, x₂ = −1/3 + 3 = 8/3, x₃ = 2. Решение (2/3; −1/3; 0) - это x₃ = 0." },
+        { type: "fill", level: "hard", q: "ТР №1, вариант 16, 5б: (x₁; x₂; x₃; x₄) = ___",
+          answers: ["(-1; -2; 3; 1)", "(−1; −2; 3; 1)", "(-1;-2;3;1)", "(−1;−2;3;1)", "(-1, -2, 3, 1)", "(−1, −2, 3, 1)", "(-1,-2,3,1)", "(−1,−2,3,1)", "-1 -2 3 1", "−1 −2 3 1", "-1; -2; 3; 1", "−1; −2; 3; 1", "-1, -2, 3, 1", "−1, −2, 3, 1"],
+          explain: "Из диагонального вида: x₁ = −1, x₂ = −2, x₃ = 3, x₄ = 1. Проверка: −2 − 2 − 6 + 1 = −9, −1 + 4 − 3 + 2 = 2, −2 − 2 − 1 = −5, −2 − 2 − 3 − 1 = −8." }
+      ],
+      oral: [
+        { q: "Дайте определение расширенной матрицы системы.", a: "Расширенной матрицей системы называется матрица системы, дополненная столбцом свободных членов." },
+        { q: "Дайте определение верхнетреугольной и диагональной расширенной матрицы.", a: "Расширенная матрица системы называется верхнетреугольной, если в матрице системы все элементы ниже главной диагонали равны нулю. Расширенную матрицу системы называют диагональной, если матрица системы представляет собой единичную." },
+        { q: "В чём заключается идея метода Гаусса?", a: "Идея метода Гаусса заключается в том, чтобы с помощью элементарных преобразований от расширенной матрицы системы перейти вначале к верхнетреугольной матрице (прямой ход метода Гаусса), а затем и к диагональной (обратный ход метода Гаусса)." },
+        { q: "Что означает нулевая строка в матрице системы при переходе к верхнетреугольному виду?", a: "Если возникает хотя бы одна нулевая строка (это означает, что определитель исходной системы равен нулю), то система либо не имеет решения вовсе, либо имеет бесчисленное множество решений. Если нулевой строки не возникло, система имеет единственное решение." }
+      ],
+      cheat: [
+        "Идея: расширенная → <b>верхнетреугольная</b> (прямой ход) → <b>диагональная</b> (обратный ход).",
+        "Преобразования: Ci ↔ Cj;  α·Ci (α ≠ 0);  Ci + α·Cj.",
+        "Нулевой строки нет - решение единственное. Есть - либо решений нет (<b>0 0 0 | −2</b>), либо бесчисленно много (<b>0 0 0 | 0</b>, свободная переменная).",
+        "Пример 2: (2; −1; 1). Пример 5: (−1; 0; 2; 1). Вар. 16, 5б: <b>(−1; −2; 3; 1)</b>."
+      ]
+    },
+    {
+      id: "rank", name: "Ранг матрицы",
+      konspekt: `
+        <h3>Аналогия: сколько разных рассказов</h3>
+        <p>Три друга пересказывают новости. Первый рассказал одно, второй - другое, а третий просто сложил их рассказы. Нового от третьего - ничего. По-настоящему разных рассказов - два. <b>Ранг</b> - это число по-настоящему разных, независимых строк матрицы. В примере 6 ниже так и есть: третья строка равна сумме первых двух, и ранг равен 2.</p>
+        <h3>Определения из лекции</h3>
+        <p>Рассмотрим матрицу A размера m×n. Вычеркиванием каких-либо строк или столбцов можно вычленить квадратные подматрицы k-го порядка, где k ≤ min(m; n). Определители таких подматриц называются <b>минорами k-го порядка</b> матрицы A.</p>
+        <p><b>Рангом матрицы</b> A называется наивысший порядок отличных от нуля миноров этой матрицы. Обозначают ранг матрицы обычно rang A или r(A).</p>
+        <p>Т.о., рангом матрицы называется число r, такое, что выполняются условия:</p>
+        <ol>
+          <li>существует минор порядка r, не равный нулю;</li>
+          <li>все миноры большего порядка, начиная с (r+1), равны нулю.</li>
+        </ol>
+        <p>Всякий отличный от нуля минор матрицы, порядок которого равен рангу этой матрицы, называется <b>базисным минором</b> матрицы.</p>
+        <h3>Свойства ранга матрицы</h3>
+        <ol>
+          <li>Ранг матрицы A размера m×n не превосходит меньшего из ее размеров, т.е. rang A ≤ min(m; n).</li>
+          <li>rang A = 0 тогда и только тогда, когда A - нулевая матрица.</li>
+          <li>Если A - квадратная матрица n-го порядка, то rang A = n тогда и только тогда, когда матрица A невырожденная.</li>
+        </ol>
+        <p>Невырожденная - значит Δ(A) ≠ 0 (лекция 1).</p>
+        <h3>Как находить ранг</h3>
+        <p>Нахождение ранга матрицы, используя непосредственно определение, довольно громоздко и трудоемко.</p>
+        <div class="callout"><b>Теорема.</b> Ранг матрицы не изменяется при ее элементарных преобразованиях.</div>
+        <p>С помощью элементарных преобразований можно привести матрицу к верхнетреугольному виду, где диагональные элементы a₁₁, a₂₂, …, a<sub>rr</sub> не равны нулю, r ≤ n, а ниже - только нули. <mark>Ранг верхнетреугольной матрицы равен r.</mark></p>
+        <h3>Пример 6 из лекции</h3>
+        <pre>    ( 1  2  −1   4 )
+A = ( 3  5   2   1 )
+    ( 4  7   1   5 )
+
+C₂ − 3C₁,  C₃ − 4C₁:
+( 1   2  −1    4 )
+( 0  −1   5  −11 )
+( 0  −1   5  −11 )
+
+C₃ − C₂:
+( 1   2  −1    4 )
+( 0  −1   5  −11 )
+( 0   0   0    0 )
+
+~ ( 1   2  −1    4 )
+  ( 0  −1   5  −11 )</pre>
+        <p>Таким образом, rang A = 2.</p>
+        <h3>Ранг и линейная зависимость</h3>
+        <p>Понятие ранга матрицы тесно связано с понятием линейной зависимости (независимости) ее строк (столбцов). Строка (столбец) называются <b>линейно зависимыми</b>, если хотя бы одна из строк (столбцов) линейно выражается через остальные. В противном случае, строки (столбцы) называются <b>линейно независимыми</b>.</p>
+        <div class="callout"><b>Теорема.</b> Ранг матрицы равен максимальному числу ее линейно независимых строк (столбцов).</div>
+        <h3>Числа из ТР №1, вариант 16</h3>
+        <pre>5а: Δ = −2 ≠ 0  →  матрица системы 3×3 невырожденная
+    →  rang A = 3   (свойство 3)
+
+5б: после прямого хода 4 ненулевые строки
+    →  rang A = 4</pre>`,
+      terms: [
+        { term: "Минор k-го порядка", def: "определитель квадратной подматрицы k-го порядка, вычлененной из матрицы A вычеркиванием каких-либо строк или столбцов; k ≤ min(m; n)." },
+        { term: "Ранг матрицы", def: "наивысший порядок отличных от нуля миноров этой матрицы; обозначают rang A или r(A)." },
+        { term: "Базисный минор", def: "всякий отличный от нуля минор матрицы, порядок которого равен рангу этой матрицы." },
+        { term: "Линейно зависимые строки (столбцы)", def: "строки (столбцы), из которых хотя бы одна линейно выражается через остальные." },
+        { term: "Линейно независимые строки (столбцы)", def: "в противном случае - когда ни одна из строк (столбцов) не выражается линейно через остальные." }
+      ],
+      cards: [
+        { front: "Ранг матрицы", back: "Наивысший порядок отличных от нуля миноров этой матрицы." },
+        { front: "Базисный минор", back: "Отличный от нуля минор, порядок которого равен рангу матрицы." },
+        { front: "rang A для матрицы m×n не больше…", back: "min(m; n) - меньшего из её размеров." },
+        { front: "Квадратная матрица n-го порядка: когда rang A = n?", back: "Тогда и только тогда, когда A невырожденная (Δ(A) ≠ 0)." },
+        { front: "Как найти ранг быстро?", back: "Элементарными преобразованиями привести к верхнетреугольному виду - ранг при этом не меняется. Ранг равен r." },
+        { front: "Ранг и строки", back: "Ранг равен максимальному числу линейно независимых строк (столбцов)." },
+        { front: "Пример 6 лекции: rang A", back: "2: третья строка равна сумме первой и второй." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Что называется рангом матрицы?",
+          options: [{ t: "Наивысший порядок отличных от нуля миноров", correct: true }, { t: "Число строк матрицы", correct: false }, { t: "Определитель матрицы", correct: false }, { t: "Наименьший порядок отличных от нуля миноров", correct: false }],
+          explain: "Определение из лекции: рангом матрицы A называется наивысший порядок отличных от нуля миноров этой матрицы." },
+        { type: "truefalse", level: "easy", q: "Ранг матрицы не изменяется при ее элементарных преобразованиях.", answer: true,
+          explain: "Это теорема из лекции. На ней основан быстрый способ: привести матрицу к верхнетреугольному виду." },
+        { type: "fill", level: "med", q: "Матрица размера 3×5. Её ранг не больше ___",
+          answers: ["3", "трёх", "трех", "три"], explain: "Свойство 1: rang A ≤ min(m; n) = min(3; 5) = 3." },
+        { type: "single", level: "med", q: "Пример 6 лекции: A = (1 2 −1 4; 3 5 2 1; 4 7 1 5). rang A = ?",
+          options: [{ t: "2", correct: true }, { t: "3", correct: false }, { t: "4", correct: false }, { t: "1", correct: false }],
+          explain: "C₂ − 3C₁, C₃ − 4C₁, затем C₃ − C₂: третья строка обнулилась, остались 2 ненулевые строки. rang A = 2." },
+        { type: "match", level: "med", q: "Сопоставь.",
+          pairs: [{ left: "rang A = 0", right: "A - нулевая матрица" }, { left: "rang A = n у квадратной матрицы n-го порядка", right: "A невырожденная" }, { left: "Базисный минор", right: "ненулевой минор порядка rang A" }, { left: "Минор k-го порядка", right: "определитель квадратной подматрицы k-го порядка" }],
+          explain: "Свойства 2 и 3 ранга и определения из лекции." },
+        { type: "fill", level: "hard", q: "ТР №1, вариант 16, 5а: Δ = −2. Ранг матрицы системы (3×3) равен ___",
+          answers: ["3", "три"], explain: "Δ ≠ 0 - матрица невырожденная. По свойству 3 ранг квадратной матрицы 3-го порядка равен 3." },
+        { type: "multiple", level: "hard", q: "Что верно для матрицы из примера 6?",
+          options: [{ t: "Третья строка равна сумме первой и второй", correct: true }, { t: "Строки линейно зависимы", correct: true }, { t: "Базисный минор имеет 2-й порядок", correct: true }, { t: "Есть ненулевой минор 3-го порядка", correct: false }, { t: "rang A = min(3; 4) = 3", correct: false }],
+          explain: "(1 2 −1 4) + (3 5 2 1) = (4 7 1 5), поэтому строки зависимы и rang A = 2. Например, минор | 1 2 ; 3 5 | = 5 − 6 = −1 ≠ 0 - базисный. Все миноры 3-го порядка равны нулю." }
+      ],
+      oral: [
+        { q: "Дайте определение ранга матрицы.", a: "Рангом матрицы A называется наивысший порядок отличных от нуля миноров этой матрицы. Т.о., рангом матрицы называется число r, такое, что: 1) существует минор порядка r, не равный нулю; 2) все миноры большего порядка, начиная с (r+1), равны нулю." },
+        { q: "Дайте определение минора k-го порядка и базисного минора.", a: "Вычеркиванием каких-либо строк или столбцов матрицы A размера m×n можно вычленить квадратные подматрицы k-го порядка, где k ≤ min(m; n). Определители таких подматриц называются минорами k-го порядка матрицы A. Всякий отличный от нуля минор матрицы, порядок которого равен рангу этой матрицы, называется базисным минором матрицы." },
+        { q: "Перечислите свойства ранга матрицы.", a: "1) Ранг матрицы размера m×n не превосходит меньшего из ее размеров, т.е. rang A ≤ min(m; n). 2) rang A = 0 тогда и только тогда, когда A - нулевая матрица. 3) Если A - квадратная матрица n-го порядка, то rang A = n тогда и только тогда, когда матрица A невырожденная." },
+        { q: "Как ранг связан с линейной зависимостью строк?", a: "Строки (столбцы) называются линейно зависимыми, если хотя бы одна из них линейно выражается через остальные, в противном случае - линейно независимыми. Теорема: ранг матрицы равен максимальному числу ее линейно независимых строк (столбцов)." }
+      ],
+      cheat: [
+        "<b>rang A</b> - наивысший порядок ненулевого минора.",
+        "rang A ≤ min(m; n); rang A = 0 ⟺ A нулевая; квадратная: rang A = n ⟺ Δ(A) ≠ 0.",
+        "Элементарные преобразования ранг не меняют → верхнетреугольный вид → ранг = r.",
+        "Ранг = максимальное число линейно независимых строк. Пример 6: <b>rang A = 2</b>."
+      ]
+    },
+    {
+      id: "theory", name: "Общая теория систем",
+      konspekt: `
+        <h3>Аналогия: свидетели</h3>
+        <p>Уравнения - показания свидетелей о неизвестных. Ранг матрицы системы - сколько среди них по-настоящему разных показаний. Если столбец свободных членов добавляет новое независимое показание (ранг расширенной матрицы больше), свидетели противоречат друг другу - решений нет. Если разных показаний столько же, сколько неизвестных, картина восстанавливается однозначно. Если меньше - часть неизвестных остаётся свободной, и решений бесконечно много.</p>
+        <h3>Система m уравнений с n неизвестными</h3>
+        <pre>a₁₁x₁ + a₁₂x₂ + … + a₁ₙxₙ = b₁
+a₂₁x₁ + a₂₂x₂ + … + a₂ₙxₙ = b₂
+…
+aₘ₁x₁ + aₘ₂x₂ + … + aₘₙxₙ = bₘ</pre>
+        <p>где a<sub>ij</sub> - коэффициенты системы; b<sub>i</sub> - свободные члены; x<sub>j</sub> - неизвестные значения; i = 1..m, j = 1..n.</p>
+        <p>Матричная форма записи СЛАУ: AX = B, где A - матрица коэффициентов системы или <b>основная матрица системы</b>; X - вектор-столбец из неизвестных; B - вектор-столбец из свободных членов. <b>Расширенной матрицей системы</b> называется матрица вида (A|B) - к основной матрице за чертой приписан столбец свободных членов.</p>
+        <h3>Виды систем</h3>
+        <ul>
+          <li>Система уравнений называется <b>совместной</b>, если она имеет хотя бы одно решение.</li>
+          <li>Система уравнений называется <b>несовместной</b>, если она не имеет ни одного решения.</li>
+          <li>Совместная система называется <b>определенной</b>, если она имеет единственное решение.</li>
+          <li>Совместная система называется <b>неопределенной</b>, если она имеет более одного решения.</li>
+        </ul>
+        <p>Каждое решение неопределенной системы называется <b>частным решением</b> этой системы. Совокупность всех частных решений называется <b>общим решением</b> системы.</p>
+        <p>Две системы уравнений называются <b>равносильными</b>, если множества их решений совпадают.</p>
+        <p><b>Элементарные преобразования системы уравнений</b>, переводящие её в равносильную систему:</p>
+        <ol>
+          <li>перестановка местами любых двух уравнений;</li>
+          <li>умножение обеих частей любого уравнения на число, отличное от нуля;</li>
+          <li>прибавление к обеим частям одного уравнения соответствующих частей другого, умноженных на одно и то же число.</li>
+        </ol>
+        <h3>Теорема Кронекера - Капелли</h3>
+        <p>Исследование системы уравнений на совместность основано на следующей теореме.</p>
+        <div class="callout"><b>Теорема Кронекера - Капелли.</b> Для того, чтобы система уравнений с n неизвестными была совместна, необходимо и достаточно чтобы ранг матрицы системы был равен рангу расширенной матрицы системы, т. е. r(A) = r(A|B) = r. При этом:<br>1) если r = n, система определена;<br>2) если r &lt; n, система неопределена. Переменные x₁, x₂, … x<sub>r</sub> (<b>базисные</b>) однозначно выражаются через остальные (<b>свободные</b>) неизвестные, которые могут принимать произвольные значения.</div>
+        <h3>Алгоритм решения СЛАУ с использованием метода Гаусса</h3>
+        <ol>
+          <li>Составляется расширенная матрица системы (A|B).</li>
+          <li>С помощью элементарных преобразований строк расширенной матрицы системы (A|B) исходную систему преобразуют в равносильную. Преобразования проводятся так, чтобы матрица (A|B) приобрела треугольный/ступенчатый вид (элементы, расположенные ниже главной диагонали равны нулю).</li>
+          <li>Проводится исследование совместности системы с использованием теоремы Кронекера-Капелли:<br>а) если rang A = rang (A|B) = n, где n - число неизвестных, то СЛАУ совместна и определена (имеет единственное решение);<br>б) rang A = rang (A|B) ≠ n, где n - число неизвестных, то СЛАУ совместна и неопределена (имеет бесконечное множество решений);<br>в) rang A ≠ rang (A|B), то СЛАУ несовместна.</li>
+          <li>Записывается ступенчатая СЛАУ (обратный ход метода Гаусса):<br>а) если rang A = rang (A|B) = n, где n - число неизвестных, то последовательно находятся неизвестные xₙ, xₙ₋₁, …, x₁;<br>б) если rang A = rang (A|B) &lt; n, то в качестве базисных переменных выбираются неизвестные, с которых начинаются уравнения ступенчатой системы. Остальные переменные - свободные. Базисные переменные выражаются через свободные, формируя общее решение СЛАУ;<br>в) если rang A ≠ rang (A|B), то СЛАУ несовместна.</li>
+        </ol>
+        <p>В лекции пункт 4б по опечатке начинается так же, как 4в («если rang A ≠ rang (A|B)»). По смыслу это случай из пункта 3б: ранги равны, но меньше n.</p>
+        <div class="callout">Если при преобразованиях появляется строка, полностью состоящая из нулей, то её можно <b>отбросить</b>. Если при преобразованиях появляется строка, соответствующая противоречивому уравнению вида 0·x₁ + 0·x₂ + … + 0·xₙ = b<sub>i</sub>, где b<sub>i</sub> ≠ 0, то процесс преобразований на этом прекращают, так как система уравнений <b>несовместна</b>.</div>
+        <h3>Пример 7 из лекции - исследовать на совместность</h3>
+        <pre> 2x₁ − 2x₂ +  3x₃ + 6x₄ = −5
+−4x₁ + 5x₂ −  7x₃ − 3x₄ = −6
+−6x₁ + 7x₂ − 10x₃ − 9x₄ = −1
+
+(  2  −2    3   6 | −5 )
+( −4   5   −7  −3 | −6 )
+( −6   7  −10  −9 | −1 )
+
+C₂ + 2C₁,  C₃ + 3C₁:
+( 2  −2   3   6 |  −5 )
+( 0   1  −1   9 | −16 )
+( 0   1  −1   9 | −16 )
+
+C₃ − C₂:
+( 2  −2   3   6 |  −5 )
+( 0   1  −1   9 | −16 )
+( 0   0   0   0 |   0 )    ← отбрасываем
+
+rang A = rang (A|B) = 2 &lt; 4</pre>
+        <p>Следовательно, на основании теоремы Кронекера-Капелли, система совместна и имеет бесконечное множество решений. Исходная система равносильна системе:</p>
+        <pre>2x₁ − 2x₂ + 3x₃ + 6x₄ = −5
+       x₂ −  x₃ + 9x₄ = −16</pre>
+        <p>Минор | 2 −2 ; 0 1 | = 2 ≠ 0 можно принять за базисный. Тогда x₁, x₂ - базисные переменные, а остальные x₃, x₄ - свободные. Придадим свободным переменным произвольные значения x₃ = c₁, x₄ = c₂, c₁, c₂ ∈ R. В лекции преобразования - самостоятельно, вот они:</p>
+        <pre>x₂ = c₁ − 9c₂ − 16
+2x₁ = −5 + 2x₂ − 3c₁ − 6c₂ = −37 − c₁ − 24c₂
+
+x₁ = −37/2 − 1/2·c₁ − 12c₂
+x₂ = c₁ − 9c₂ − 16
+x₃ = c₁,  x₄ = c₂,  c₁, c₂ ∈ R</pre>
+        <h3>ТР №1, вариант 16</h3>
+        <p>5а: Δ = −2 ≠ 0, поэтому rang A = rang (A|B) = 3 = n - система совместна и определена, решение (−1; −2; 3). 5б: после прямого хода нулевых строк нет, rang A = rang (A|B) = 4 = n - совместна и определена, решение (−1; −2; 3; 1).</p>`,
+      terms: [
+        { term: "Основная матрица системы", def: "матрица коэффициентов системы A." },
+        { term: "Совместная система", def: "система уравнений, которая имеет хотя бы одно решение." },
+        { term: "Несовместная система", def: "система уравнений, которая не имеет ни одного решения." },
+        { term: "Определенная система", def: "совместная система, которая имеет единственное решение." },
+        { term: "Неопределенная система", def: "совместная система, которая имеет более одного решения." },
+        { term: "Частное решение", def: "каждое решение неопределенной системы." },
+        { term: "Общее решение", def: "совокупность всех частных решений системы." },
+        { term: "Равносильные системы", def: "две системы уравнений, множества решений которых совпадают." },
+        { term: "Базисные и свободные неизвестные", def: "базисные переменные однозначно выражаются через остальные (свободные) неизвестные, которые могут принимать произвольные значения." }
+      ],
+      cards: [
+        { front: "Совместная система", back: "Имеет хотя бы одно решение." },
+        { front: "Несовместная система", back: "Не имеет ни одного решения." },
+        { front: "Определенная и неопределенная система", back: "Совместная с единственным решением - определенная; с более чем одним решением - неопределенная." },
+        { front: "Теорема Кронекера - Капелли", back: "Система совместна тогда и только тогда, когда r(A) = r(A|B)." },
+        { front: "r(A) = r(A|B) = r = n", back: "Система совместна и определена - единственное решение." },
+        { front: "r(A) = r(A|B) = r < n", back: "Система совместна и неопределена - бесконечное множество решений; есть свободные неизвестные." },
+        { front: "r(A) ≠ r(A|B)", back: "Система несовместна." },
+        { front: "Пример 7 лекции: ранги", back: "rang A = rang (A|B) = 2 < 4 - совместна, бесконечное множество решений; x₃, x₄ - свободные." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Какая система уравнений называется совместной?",
+          options: [{ t: "Имеющая хотя бы одно решение", correct: true }, { t: "Имеющая единственное решение", correct: false }, { t: "Не имеющая ни одного решения", correct: false }, { t: "В которой уравнений столько же, сколько неизвестных", correct: false }],
+          explain: "Система уравнений называется совместной, если она имеет хотя бы одно решение. Единственное решение - это уже определенная система." },
+        { type: "truefalse", level: "easy", q: "Совместная система называется неопределенной, если она имеет более одного решения.", answer: true,
+          explain: "Определение из лекции." },
+        { type: "single", level: "med", q: "По теореме Кронекера - Капелли система с n неизвестными совместна тогда и только тогда, когда…",
+          options: [{ t: "r(A) = r(A|B)", correct: true }, { t: "r(A) = n", correct: false }, { t: "определитель системы отличен от нуля", correct: false }, { t: "r(A|B) больше r(A)", correct: false }],
+          explain: "Необходимо и достаточно, чтобы ранг матрицы системы был равен рангу расширенной матрицы системы." },
+        { type: "match", level: "med", q: "Сопоставь соотношение рангов и вывод о системе (n - число неизвестных).",
+          pairs: [{ left: "r(A) = r(A|B) = n", right: "совместна и определена" }, { left: "r(A) = r(A|B) < n", right: "совместна и неопределена" }, { left: "r(A) ≠ r(A|B)", right: "несовместна" }],
+          explain: "Пункт 3 алгоритма решения СЛАУ методом Гаусса из лекции." },
+        { type: "fill", level: "med", q: "Пример 7 лекции: rang A = rang (A|B) = ___",
+          answers: ["2", "два"], explain: "После C₂ + 2C₁, C₃ + 3C₁ и C₃ − C₂ третья строка нулевая, её отбрасываем. Остаются 2 строки: rang A = rang (A|B) = 2 < 4." },
+        { type: "single", level: "hard", q: "Пример 7 лекции: сколько свободных неизвестных?",
+          options: [{ t: "2 (x₃ и x₄)", correct: true }, { t: "1", correct: false }, { t: "0", correct: false }, { t: "4", correct: false }],
+          explain: "Неизвестных n = 4, ранг r = 2. Базисные x₁, x₂, остальные x₃, x₄ - свободные." },
+        { type: "fill", level: "hard", q: "Пример 7 лекции, общее решение: x₁ = −37/2 − 1/2·c₁ − 12c₂. При c₁ = c₂ = 0 x₁ = ___",
+          answers: ["-37/2", "−37/2", "-18,5", "−18,5", "-18.5", "−18.5"], explain: "x₃ = x₄ = 0, x₂ = −16, 2x₁ = −5 + 2·(−16) = −37, x₁ = −37/2. Проверка: 2·(−18,5) − 2·(−16) = −5, −4·(−18,5) + 5·(−16) = −6, −6·(−18,5) + 7·(−16) = −1." },
+        { type: "multiple", level: "hard", q: "ТР №1, вариант 16, 5б (4 уравнения, 4 неизвестных). Что верно?",
+          options: [{ t: "rang A = rang (A|B) = 4", correct: true }, { t: "Система совместна и определена", correct: true }, { t: "Решение (−1; −2; 3; 1)", correct: true }, { t: "Система неопределена", correct: false }, { t: "rang (A|B) = 5", correct: false }],
+          explain: "Нулевых строк после прямого хода нет, r = n = 4 - решение единственное. Ранг матрицы из 4 строк не может быть больше 4." }
+      ],
+      oral: [
+        { q: "Дайте определение совместной и несовместной системы.", a: "Система уравнений называется совместной, если она имеет хотя бы одно решение. Система уравнений называется несовместной, если она не имеет ни одного решения." },
+        { q: "Дайте определение определенной и неопределенной системы.", a: "Совместная система называется определенной, если она имеет единственное решение. Совместная система называется неопределенной, если она имеет более одного решения." },
+        { q: "Дайте определение частного и общего решения, равносильных систем.", a: "Каждое решение неопределенной системы называется частным решением этой системы. Совокупность всех частных решений называется общим решением системы. Две системы уравнений называются равносильными, если множества их решений совпадают." },
+        { q: "Сформулируйте теорему Кронекера - Капелли.", a: "Для того, чтобы система уравнений с n неизвестными была совместна, необходимо и достаточно чтобы ранг матрицы системы был равен рангу расширенной матрицы системы, т. е. r(A) = r(A|B) = r. При этом: 1) если r = n, система определена; 2) если r < n, система неопределена. Переменные x₁, x₂, …, xr (базисные) однозначно выражаются через остальные (свободные) неизвестные, которые могут принимать произвольные значения." }
+      ],
+      cheat: [
+        "Совместна - есть решение; определена - одно; неопределена - больше одного.",
+        "<b>Кронекер - Капелли:</b> совместна ⟺ r(A) = r(A|B) = r.",
+        "r = n - одно решение; r &lt; n - бесконечно много; r(A) ≠ r(A|B) - несовместна.",
+        "Нулевую строку отбрасываем; строка 0 … 0 | b ≠ 0 - стоп, несовместна."
+      ]
+    },
+    {
+      id: "eigen", name: "Собственные векторы",
+      konspekt: `
+        <h3>Аналогия: резинка</h3>
+        <p>Матрица A действует на вектор: A·x - новый вектор. Обычно он смотрит уже в другую сторону. Но бывают особые направления - как резинка, которую тянут вдоль неё самой: направление то же, меняется только длина. Такой вектор - <b>собственный</b>, а во сколько раз он растянулся - <b>собственное значение</b> λ.</p>
+        <h3>Определения из лекции</h3>
+        <p>Вектор x ≠ 0 называется <b>собственным вектором</b> матрицы A, если найдется такое число λ, что</p>
+        <pre>A·x = λ·x          (1.6)</pre>
+        <p>Число λ называется <b>собственным значением</b> матрицы A, соответствующим вектору x.</p>
+        <p>Равенство (1.6) можно записать в развернутом виде. Перенеся λx₁, …, λxₙ влево, получим систему</p>
+        <pre>(a₁₁ − λ)x₁ + a₁₂x₂ + … + a₁ₙxₙ = 0
+a₂₁x₁ + (a₂₂ − λ)x₂ + … + a₂ₙxₙ = 0
+…
+aₙ₁x₁ + aₙ₂x₂ + … + (aₙₙ − λ)xₙ = 0</pre>
+        <p>или в матричном виде</p>
+        <pre>(A − λE)·x = 0.</pre>
+        <p>Полученная система всегда имеет нулевое решение. Для существования ненулевого решения необходимо и достаточно, чтобы определитель системы обращался в нуль:</p>
+        <pre>Δ(A − λE) = 0          (1.7)</pre>
+        <p>Определитель Δ(A − λE) является многочленом n-ой степени. Он называется <b>характеристическим многочленом</b> матрицы A, а уравнение (1.7) - <b>характеристическим уравнением</b> матрицы A. В определителе из диагональных элементов вычитается λ, остальные элементы - как в A.</p>
+        <div class="callout"><b>Теорема.</b> Корни характеристического уравнения матрицы A (если они существуют) и только они являются собственными значениями этой матрицы.</div>
+        <h3>Порядок действий (по примерам лекции)</h3>
+        <ol>
+          <li>Составить характеристическое уравнение Δ(A − λE) = 0 и найти его корни - собственные значения.</li>
+          <li>Для каждого λ решить систему (A − λE)·x = 0 (методом Гаусса) - получить собственные векторы.</li>
+        </ol>
+        <h3>Пример 8 из лекции</h3>
+        <pre>    (  2   4 )
+A = ( −1  −3 )
+
+Δ(A − λE) = | 2 − λ     4    |
+            |  −1    −3 − λ  |
+
+= (2 − λ)(−3 − λ) − 4·(−1) = λ² + λ − 6 + 4
+= λ² + λ − 2 = 0
+
+λ₁ = −2,  λ₂ = 1</pre>
+        <pre>λ₁ = −2:
+(  4   4 ) ( x₁ )   ( 0 )
+( −1  −1 ) ( x₂ ) = ( 0 )
+
+−x₁ − x₂ = 0,  x₁ = −x₂.  Положив x₂ = C:
+собственный вектор (−C; C) при любом C ≠ 0
+
+λ₂ = 1:
+(  1   4 ) ( x₁ )   ( 0 )
+( −1  −4 ) ( x₂ ) = ( 0 )
+
+x₁ + 4x₂ = 0:
+собственный вектор (−4C; C) при любом C ≠ 0</pre>
+        <p>Проверка: A·(−1; 1) = (2; −2) = −2·(−1; 1), A·(−4; 1) = (−4; 1) = 1·(−4; 1).</p>
+        <h3>Пример 9 из лекции</h3>
+        <pre>    (  1  −4  −8 )
+A = ( −4   7  −4 )
+    ( −8  −4   1 )</pre>
+        <p>В лекции характеристическое уравнение дано готовым («проделайте это самостоятельно»). По Саррюсу:</p>
+        <pre>Δ(A − λE) = | 1 − λ    −4     −8   |
+            |  −4     7 − λ   −4   |
+            |  −8      −4    1 − λ |
+
+«+»: (1 − λ)(7 − λ)(1 − λ) + (−4)(−4)(−8) + (−8)(−4)(−4)
+   = (1 − λ)²(7 − λ) − 256
+   = −λ³ + 9λ² − 15λ + 7 − 256
+
+«−»: (−8)(7 − λ)(−8) + (1 − λ)(−4)(−4) + (−4)(−4)(1 − λ)
+   = 64(7 − λ) + 32(1 − λ) = 480 − 96λ
+
+Δ(A − λE) = −λ³ + 9λ² − 15λ − 249 − 480 + 96λ
+          = −λ³ + 9λ² + 81λ − 729 = 0
+
+λ³ − 9λ² − 81λ + 729 = 0
+λ²(λ − 9) − 81(λ − 9) = 0  →  (λ − 9)(λ² − 81) = 0
+λ₁ = 9,  λ₂ = −9</pre>
+        <pre>λ₁ = 9:
+( −8  −4  −8 ) ( x₁ )   ( 0 )
+( −4  −2  −4 ) ( x₂ ) = ( 0 )
+( −8  −4  −8 ) ( x₃ )   ( 0 )
+
+Решая методом Гаусса, получим
+(−1/2·C₁ − C₂; C₁; C₂),
+где C₁ и C₂ - произвольные числа, не равные нулю одновременно
+
+λ₂ = −9:  (C₃; 1/2·C₃; C₃) при любом C₃ ≠ 0
+
+Проверка при C₃ = 2:
+A·(2; 1; 2) = (−18; −9; −18) = −9·(2; 1; 2)</pre>`,
+      terms: [
+        { term: "Собственный вектор матрицы A", def: "вектор x ≠ 0, для которого найдется такое число λ, что A·x = λ·x." },
+        { term: "Собственное значение матрицы A", def: "число λ, соответствующее собственному вектору x: A·x = λ·x." },
+        { term: "Характеристический многочлен", def: "определитель Δ(A − λE); является многочленом n-ой степени." },
+        { term: "Характеристическое уравнение", def: "уравнение Δ(A − λE) = 0." }
+      ],
+      cards: [
+        { front: "Собственный вектор", back: "Вектор x ≠ 0, для которого найдется число λ такое, что A·x = λ·x." },
+        { front: "Собственное значение", back: "Число λ из равенства A·x = λ·x." },
+        { front: "Характеристическое уравнение", back: "Δ(A − λE) = 0." },
+        { front: "Теорема о собственных значениях", back: "Корни характеристического уравнения (если они существуют) и только они являются собственными значениями матрицы." },
+        { front: "Почему требуют Δ(A − λE) = 0?", back: "Система (A − λE)·x = 0 всегда имеет нулевое решение; ненулевое существует тогда и только тогда, когда её определитель равен нулю." },
+        { front: "Пример 8: собственные значения A = (2 4; −1 −3)", back: "λ₁ = −2, λ₂ = 1; векторы (−C; C) и (−4C; C), C ≠ 0." },
+        { front: "Пример 9: собственные значения", back: "λ₁ = 9, λ₂ = −9." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Какое равенство задаёт собственный вектор x матрицы A?",
+          options: [{ t: "A·x = λ·x", correct: true }, { t: "A·x = 0", correct: false }, { t: "A·x = x + λ", correct: false }, { t: "A·λ = x", correct: false }],
+          explain: "Вектор x ≠ 0 называется собственным вектором матрицы A, если найдется такое число λ, что A·x = λ·x." },
+        { type: "truefalse", level: "easy", q: "Собственный вектор может быть нулевым.", answer: false,
+          explain: "В определении прямо сказано: вектор x ≠ 0." },
+        { type: "fill", level: "med", q: "Характеристическое уравнение матрицы A: Δ(A − ___·E) = 0",
+          answers: ["λ", "лямбда", "lambda", "l"], explain: "Δ(A − λE) = 0 - характеристическое уравнение, его корни - собственные значения." },
+        { type: "single", level: "med", q: "Пример 8 лекции: A = (2 4; −1 −3). Характеристическое уравнение:",
+          options: [{ t: "λ² + λ − 2 = 0", correct: true }, { t: "λ² − λ − 2 = 0", correct: false }, { t: "λ² + λ − 10 = 0", correct: false }, { t: "λ² − 5λ − 2 = 0", correct: false }],
+          explain: "(2 − λ)(−3 − λ) − 4·(−1) = λ² + λ − 6 + 4 = λ² + λ − 2. Ответ λ² + λ − 10 - если потерять минус у −1." },
+        { type: "fill", level: "med", q: "Пример 8 лекции: собственные значения λ₁ = −2 и λ₂ = ___",
+          answers: ["1"], explain: "λ² + λ − 2 = (λ + 2)(λ − 1) = 0, отсюда λ₁ = −2, λ₂ = 1." },
+        { type: "truefalse", level: "hard", q: "В примере 8 вектор (−1; 1) - собственный для λ₁ = −2.", answer: true,
+          explain: "A·(−1; 1) = (2·(−1) + 4·1; −1·(−1) − 3·1) = (2; −2) = −2·(−1; 1). Это вектор (−C; C) при C = 1." },
+        { type: "match", level: "med", q: "Сопоставь понятие и запись.",
+          pairs: [{ left: "Собственный вектор", right: "x ≠ 0, A·x = λ·x" }, { left: "Характеристический многочлен", right: "Δ(A − λE)" }, { left: "Характеристическое уравнение", right: "Δ(A − λE) = 0" }, { left: "Система для собственных векторов", right: "(A − λE)·x = 0" }],
+          explain: "Все записи - из лекции: (1.6), (1.7) и матричный вид системы." },
+        { type: "multiple", level: "hard", q: "Пример 9 лекции: A = (1 −4 −8; −4 7 −4; −8 −4 1). Что верно?",
+          options: [{ t: "λ = 9 - собственное значение", correct: true }, { t: "λ = −9 - собственное значение", correct: true }, { t: "(2; 1; 2) - собственный вектор для λ = −9", correct: true }, { t: "λ = 81 - собственное значение", correct: false }, { t: "(0; 0; 0) - собственный вектор", correct: false }],
+          explain: "(λ − 9)(λ² − 81) = 0 даёт λ = 9 и λ = −9. A·(2; 1; 2) = (−18; −9; −18) = −9·(2; 1; 2). Нулевой вектор собственным не бывает." }
+      ],
+      oral: [
+        { q: "Дайте определение собственного вектора и собственного значения матрицы.", a: "Вектор x ≠ 0 называется собственным вектором матрицы A, если найдется такое число λ, что A·x = λ·x. Число λ называется собственным значением матрицы A, соответствующим вектору x." },
+        { q: "Дайте определение характеристического многочлена и характеристического уравнения.", a: "Определитель Δ(A − λE) является многочленом n-ой степени. Он называется характеристическим многочленом матрицы A, а уравнение Δ(A − λE) = 0 - характеристическим уравнением матрицы A." },
+        { q: "Сформулируйте теорему о собственных значениях.", a: "Корни характеристического уравнения матрицы A (если они существуют) и только они являются собственными значениями этой матрицы." },
+        { q: "Почему собственные значения ищут из условия Δ(A − λE) = 0?", a: "Равенство A·x = λ·x переписывается как (A − λE)·x = 0. Полученная система всегда имеет нулевое решение. Для существования ненулевого решения необходимо и достаточно, чтобы определитель системы обращался в нуль." }
+      ],
+      cheat: [
+        "<b>A·x = λ·x</b>, x ≠ 0: x - собственный вектор, λ - собственное значение.",
+        "<b>Δ(A − λE) = 0</b> - характеристическое уравнение; его корни и только они - собственные значения.",
+        "Для каждого λ решаем (A − λE)·x = 0 методом Гаусса.",
+        "Пример 8: λ = −2, 1; векторы (−C; C), (−4C; C). Пример 9: λ = 9, −9."
+      ]
+    }
+  ]
+};
+
+/* ===== ДВИЖОК (не менять) ===== */
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const make = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const KEY = "trenazher:" + DATA.title;
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const norm = (s) => String(s).toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").replace(/[.,;!]+$/, "").trim();
+  const TYPE = { single: "один ответ", multiple: "несколько", truefalse: "верно / неверно", fill: "вписать", match: "сопоставить" };
+  const LEVEL = { easy: "лёгкий", med: "средний", hard: "сложный" };
+
+  /* Шапка и подпись */
+  document.title = DATA.title;
+  $("#pageTitle").textContent = DATA.title;
+  $("#pageSub").textContent = DATA.subtitle || "";
+  (DATA.meta || []).forEach((m) => $("#pageMeta").appendChild(make("span", "chip", esc(m))));
+  const au = $("#author"); au.href = AUTHOR.url; au.querySelector("b").textContent = AUTHOR.nick;
+  $("#footer").innerHTML = 'Тренажёр собрал <a href="' + esc(AUTHOR.url) + '" target="_blank" rel="noopener">' + esc(AUTHOR.nick) + "</a>";
+
+  /* Тема */
+  const root = document.documentElement;
+  const dark = () => root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const savedTheme = store.get(KEY + ":theme", null);
+  if (savedTheme) root.dataset.theme = savedTheme;
+  const themeLabel = () => { $("#themeBtn").textContent = dark() ? "Светлая тема" : "Тёмная тема"; };
+  $("#themeBtn").onclick = () => { const t = dark() ? "light" : "dark"; root.dataset.theme = t; store.set(KEY + ":theme", t); themeLabel(); };
+  themeLabel();
+
+  /* Фильтр тем */
+  let topic = "all";
+  const sel = () => topic === "all" ? DATA.topics : DATA.topics.filter((t) => t.id === topic);
+  function renderTopics() {
+    const box = $("#topics"); box.innerHTML = "";
+    if (DATA.topics.length < 2) return;
+    [{ id: "all", name: "Все темы" }].concat(DATA.topics).forEach((t) => {
+      const b = make("button", "tchip", esc(t.name)); b.type = "button";
+      b.setAttribute("aria-pressed", String(t.id === topic));
+      b.onclick = () => { topic = t.id; renderAll(); };
+      box.appendChild(b);
+    });
+  }
+
+  /* Конспект */
+  function renderKonspekt() {
+    const p = $("#p-konspekt"); p.innerHTML = "";
+    sel().forEach((t) => {
+      const s = make("section", "sheet");
+      s.appendChild(make("span", "kicker", "тема"));
+      s.appendChild(make("h2", null, esc(t.name)));
+      s.appendChild(make("div", null, t.konspekt || ""));
+      p.appendChild(s);
+    });
+  }
+
+  /* Тесты */
+  let mode = "learn", level = "all", qs = [];
+  function seg(boxId, items, cur, set) {
+    const box = $(boxId); box.innerHTML = "";
+    items.forEach(([v, label]) => {
+      const b = make("button", null, label); b.type = "button";
+      b.setAttribute("aria-pressed", String(v === cur));
+      b.onclick = () => { set(v); renderTests(); };
+      box.appendChild(b);
+    });
+  }
+  function renderTests() {
+    seg("#modeSeg", [["learn", "Учёба"], ["exam", "Экзамен"]], mode, (v) => { mode = v; });
+    seg("#levelSeg", [["all", "Все"], ["easy", "Лёгкие"], ["med", "Средние"], ["hard", "Сложные"]], level, (v) => { level = v; });
+    const list = $("#qlist"); list.innerHTML = "";
+    qs = [];
+    sel().forEach((t) => (t.questions || []).forEach((q) => { if (level === "all" || q.level === level) qs.push(q); }));
+    $("#score").textContent = ""; $("#bar").style.width = "0";
+    if (!qs.length) { list.appendChild(make("div", "empty", "Нет вопросов с таким фильтром")); return; }
+    qs.forEach((q, i) => list.appendChild(renderQ(q, i)));
+  }
+  function renderQ(q, i) {
+    const box = make("div", "q"); box.dataset.i = i;
+    const head = make("div", "qhead");
+    head.appendChild(make("span", "tag", (i + 1) + " · " + TYPE[q.type]));
+    if (q.level) head.appendChild(make("span", "tag lvl-" + q.level, LEVEL[q.level] || q.level));
+    box.appendChild(head);
+    box.appendChild(make("p", "qtext", esc(q.q)));
+    const name = "q" + i;
+    if (q.type === "single" || q.type === "multiple") {
+      const opts = make("div", "opts");
+      shuffle(q.options.map((o, k) => ({ o, k }))).forEach(({ o, k }) => {
+        const l = make("label", "opt"); l.dataset.k = k;
+        const inp = document.createElement("input"); inp.type = q.type === "single" ? "radio" : "checkbox"; inp.name = name; inp.value = k; inp.id = name + "-" + k;
+        l.appendChild(inp); l.appendChild(make("span", null, esc(o.t))); opts.appendChild(l);
+      });
+      box.appendChild(opts);
+    } else if (q.type === "truefalse") {
+      const opts = make("div", "opts");
+      [["true", "Верно"], ["false", "Неверно"]].forEach(([v, t]) => {
+        const l = make("label", "opt"); l.dataset.k = v;
+        const inp = document.createElement("input"); inp.type = "radio"; inp.name = name; inp.value = v; inp.id = name + "-" + v;
+        l.appendChild(inp); l.appendChild(make("span", null, t)); opts.appendChild(l);
+      });
+      box.appendChild(opts);
+    } else if (q.type === "fill") {
+      const inp = document.createElement("input"); inp.type = "text"; inp.id = name + "-fill"; inp.placeholder = "Твой ответ"; inp.autocomplete = "off";
+      inp.onkeydown = (e) => { if (e.key === "Enter") check(box, q); };
+      box.appendChild(inp);
+    } else if (q.type === "match") {
+      const rights = shuffle(q.pairs.map((p) => p.right));
+      q.pairs.forEach((p, k) => {
+        const row = make("div", "mrow");
+        row.appendChild(make("span", "ml", esc(p.left)));
+        const s = document.createElement("select"); s.id = name + "-m" + k;
+        s.appendChild(new Option("выбери…", ""));
+        rights.forEach((r) => s.appendChild(new Option(r, r)));
+        row.appendChild(s); box.appendChild(row);
+      });
+    }
+    const ex = make("div", "explain", "<b>Разбор:</b> " + esc(q.explain || "")); ex.hidden = true; box.appendChild(ex);
+    if (mode === "learn") {
+      const b = make("button", "btn ghost small", "Проверить"); b.type = "button";
+      b.onclick = () => check(box, q); box.appendChild(b);
+    }
+    return box;
+  }
+  function check(box, q) {
+    let ok = false;
+    const labels = [...box.querySelectorAll(".opt")];
+    labels.forEach((l) => l.classList.remove("o-ok", "o-bad"));
+    if (q.type === "single" || q.type === "multiple") {
+      const picked = new Set([...box.querySelectorAll("input:checked")].map((x) => +x.value));
+      const right = new Set(q.options.map((o, k) => o.correct ? k : -1).filter((k) => k >= 0));
+      ok = picked.size === right.size && [...picked].every((k) => right.has(k));
+      labels.forEach((l) => { const k = +l.dataset.k; if (right.has(k)) l.classList.add("o-ok"); else if (picked.has(k)) l.classList.add("o-bad"); });
+    } else if (q.type === "truefalse") {
+      const p = box.querySelector("input:checked");
+      ok = !!p && (p.value === "true") === q.answer;
+      labels.forEach((l) => { const isRight = (l.dataset.k === "true") === q.answer; if (isRight) l.classList.add("o-ok"); else if (p && p.value === l.dataset.k) l.classList.add("o-bad"); });
+    } else if (q.type === "fill") {
+      const v = norm(box.querySelector("input").value);
+      ok = v !== "" && q.answers.some((a) => norm(a) === v);
+    } else if (q.type === "match") {
+      ok = true;
+      box.querySelectorAll("select").forEach((s, k) => { const good = s.value === q.pairs[k].right; s.classList.toggle("s-ok", good); s.classList.toggle("s-bad", !good); if (!good) ok = false; });
+    }
+    box.classList.toggle("is-ok", ok); box.classList.toggle("is-bad", !ok);
+    box.querySelector(".explain").hidden = false;
+    return ok;
+  }
+  $("#checkAll").onclick = () => {
+    if (!qs.length) return;
+    let n = 0;
+    document.querySelectorAll("#qlist .q").forEach((box) => { if (check(box, qs[+box.dataset.i])) n++; });
+    const pct = Math.round(n / qs.length * 100);
+    $("#score").innerHTML = "<b>" + n + " / " + qs.length + "</b> · " + pct + "%";
+    $("#bar").style.width = pct + "%";
+  };
+  $("#resetAll").onclick = () => renderTests();
+
+  /* Карточки */
+  let deck = [], idx = 0;
+  let learned = new Set(store.get(KEY + ":learned", []));
+  function renderCards(reshuffle) {
+    const all = []; sel().forEach((t) => (t.cards || []).forEach((c) => all.push(c)));
+    deck = reshuffle ? shuffle(all) : all; if (idx >= deck.length) idx = 0;
+    drawCard();
+  }
+  function drawCard() {
+    const box = $("#deck"); box.innerHTML = "";
+    const n = deck.filter((c) => learned.has(c.front)).length;
+    $("#learned").innerHTML = deck.length ? "Знаю: <b>" + n + "</b> из " + deck.length : "";
+    if (!deck.length) { box.appendChild(make("div", "empty", "В этой теме нет карточек")); $("#counter").textContent = "0 / 0"; return; }
+    const c = deck[idx];
+    const fc = make("button", "fc"); fc.type = "button"; fc.setAttribute("aria-label", "Перевернуть карточку");
+    const inner = make("div", "inner");
+    const front = make("div", "face front", '<div class="t">' + esc(c.front) + '</div><span class="hint">нажми - ответ</span>');
+    const back = make("div", "face back", '<div class="t">' + esc(c.back) + "</div>");
+    if (learned.has(c.front)) front.appendChild(make("span", "learned-tag", "знаю"));
+    inner.appendChild(front); inner.appendChild(back); fc.appendChild(inner);
+    fc.onclick = () => fc.classList.toggle("flipped");
+    box.appendChild(fc);
+    $("#counter").textContent = (idx + 1) + " / " + deck.length;
+  }
+  const step = (d) => { if (!deck.length) return; idx = (idx + d + deck.length) % deck.length; drawCard(); };
+  const mark = (on) => { if (!deck.length) return; const f = deck[idx].front; on ? learned.add(f) : learned.delete(f); store.set(KEY + ":learned", [...learned]); step(1); };
+  $("#prev").onclick = () => step(-1);
+  $("#next").onclick = () => step(1);
+  $("#know").onclick = () => mark(true);
+  $("#again").onclick = () => mark(false);
+  $("#shuffle").onclick = () => { idx = 0; renderCards(true); };
+
+  /* Определения */
+  function renderOral() {
+    const p = $("#p-oral"); p.innerHTML = "";
+    sel().forEach((t) => {
+      const s = make("section", "sheet");
+      s.appendChild(make("span", "kicker", "тема"));
+      s.appendChild(make("h2", null, esc(t.name)));
+      if ((t.terms || []).length) {
+        const g = make("div", "terms");
+        t.terms.forEach((x) => g.appendChild(make("div", "term", "<b>" + esc(x.term) + "</b> - " + esc(x.def))));
+        s.appendChild(g);
+      }
+      (t.oral || []).forEach((o) => {
+        const d = document.createElement("details");
+        d.appendChild(make("summary", null, esc(o.q)));
+        d.appendChild(make("div", "ans", esc(o.a)));
+        s.appendChild(d);
+      });
+      p.appendChild(s);
+    });
+  }
+
+  /* Шпаргалка */
+  function renderCheat() {
+    const p = $("#p-cheat"); p.innerHTML = "";
+    const s = make("section", "sheet cheat");
+    s.appendChild(make("span", "kicker", "за час до пары"));
+    s.appendChild(make("h2", null, "Шпаргалка"));
+    sel().forEach((t) => {
+      s.appendChild(make("h3", null, esc(t.name)));
+      const ul = make("ul");
+      (t.cheat || []).forEach((c) => ul.appendChild(make("li", null, c)));
+      s.appendChild(ul);
+    });
+    p.appendChild(s);
+  }
+
+  /* Вкладки */
+  const TABS = ["konspekt", "tests", "cards", "oral", "cheat"];
+  function openTab(id) {
+    if (!TABS.includes(id)) id = "konspekt";
+    document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === id)));
+    TABS.forEach((t) => { $("#p-" + t).hidden = t !== id; });
+    store.set(KEY + ":tab", id);
+  }
+  document.querySelectorAll(".tab").forEach((t) => { t.onclick = () => openTab(t.dataset.tab); });
+
+  function renderAll() { renderTopics(); renderKonspekt(); renderTests(); renderCards(false); renderOral(); renderCheat(); }
+  renderAll();
+  openTab((location.hash || "").slice(1) || store.get(KEY + ":tab", "konspekt"));
+})();
+</script>

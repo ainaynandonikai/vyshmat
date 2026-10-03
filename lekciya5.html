@@ -1,0 +1,732 @@
+<title>Прямая на плоскости</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+  /* Светлая тема - тетрадь в клетку, тёмная - школьная доска */
+  :root{
+    --paper:#F5F6F1; --grid:rgba(47,85,212,.085); --card:#FFFFFF; --card2:#F0F2F7;
+    --ink:#1C2333; --muted:#566078; --faint:#8790A4; --line:#D8DDE6; --line2:#C3CAD8;
+    --accent:#2F55D4; --accent-ink:#FFFFFF; --accent-soft:rgba(47,85,212,.10);
+    --margin:#D2455A; --margin-soft:rgba(210,69,90,.09); --hl:rgba(255,208,0,.38);
+    --ok:#23804F; --ok-soft:rgba(35,128,79,.11); --bad:#C4344A; --bad-soft:rgba(196,52,74,.09); --warn:#A86A12;
+    --display:"Unbounded","Golos Text",system-ui,sans-serif;
+    --body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --paper:#17201C; --grid:rgba(230,236,228,.045); --card:#1E2924; --card2:#24312B;
+      --ink:#E5EBE3; --muted:#A6B2A9; --faint:#7A877E; --line:#2F3C35; --line2:#3E4D45;
+      --accent:#8FB1FF; --accent-ink:#10182A; --accent-soft:rgba(143,177,255,.14);
+      --margin:#FF8898; --margin-soft:rgba(255,136,152,.12); --hl:rgba(255,214,64,.22);
+      --ok:#6FD29C; --ok-soft:rgba(111,210,156,.13); --bad:#FF8898; --bad-soft:rgba(255,136,152,.12); --warn:#E7B65B;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --paper:#17201C; --grid:rgba(230,236,228,.045); --card:#1E2924; --card2:#24312B;
+    --ink:#E5EBE3; --muted:#A6B2A9; --faint:#7A877E; --line:#2F3C35; --line2:#3E4D45;
+    --accent:#8FB1FF; --accent-ink:#10182A; --accent-soft:rgba(143,177,255,.14);
+    --margin:#FF8898; --margin-soft:rgba(255,136,152,.12); --hl:rgba(255,214,64,.22);
+    --ok:#6FD29C; --ok-soft:rgba(111,210,156,.13); --bad:#FF8898; --bad-soft:rgba(255,136,152,.12); --warn:#E7B65B;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--body);font-size:16px;line-height:1.6;color:var(--ink);background-color:var(--paper);
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:24px 24px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:780px;margin:0 auto;padding:0 16px;padding-block:28px 64px;position:relative}
+  @media (min-width:860px){.wrap::before{content:"";position:absolute;top:0;bottom:0;left:-22px;width:2px;background:var(--margin-soft)}}
+
+  /* Шапка */
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--margin)}
+  .author{font-family:var(--mono);font-size:12.5px;color:var(--muted);text-decoration:none;border:1px solid var(--line2);
+    border-radius:999px;padding:4px 11px;background:var(--card)}
+  .author b{color:var(--accent);font-weight:600}
+  .author:hover{border-color:var(--accent)}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,6.4vw,44px);line-height:1.1;letter-spacing:-.01em;
+    margin:16px 0 8px;text-wrap:balance}
+  .sub{color:var(--muted);margin:0;max-width:62ch}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .chip{font-family:var(--mono);font-size:12px;color:var(--muted);border:1px solid var(--line);background:var(--card);padding:3px 9px;border-radius:6px}
+  .themebtn{font-family:var(--mono);font-size:12.5px;color:var(--ink);background:var(--card);border:1px solid var(--line2);
+    border-radius:8px;padding:6px 11px;cursor:pointer}
+  .themebtn:hover{border-color:var(--accent)}
+
+  /* Вкладки и темы */
+  .tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:4px;overflow-x:auto;margin:22px -16px 0;padding:10px 16px 0;
+    background:var(--paper);border-bottom:1px solid var(--line)}
+  .tabs::-webkit-scrollbar{height:0}
+  .tab{font:600 14px/1 var(--body);color:var(--muted);background:none;border:none;border-bottom:3px solid transparent;
+    padding:10px 12px 11px;cursor:pointer;white-space:nowrap}
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+  .topics{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 4px}
+  .tchip{font:500 13px/1 var(--body);color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 13px;cursor:pointer}
+  .tchip:hover{border-color:var(--line2);color:var(--ink)}
+  .tchip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .panel{margin-top:14px}
+  .sheet{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px 20px;margin-bottom:14px}
+  .sheet>h2{font-family:var(--display);font-weight:500;font-size:20px;margin:0 0 4px;text-wrap:balance}
+  .kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+  h3{font-size:17px;margin:20px 0 6px}
+  p{margin:8px 0}
+  ul,ol{margin:8px 0;padding-left:22px}
+  li{margin:4px 0}
+  mark{background:var(--hl);color:inherit;padding:0 3px;border-radius:3px}
+  code{font-family:var(--mono);font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+  pre{font-family:var(--mono);font-size:14px;line-height:1.5;background:var(--card2);border:1px solid var(--line);border-radius:8px;
+    padding:12px 14px;overflow-x:auto;margin:10px 0}
+  .callout{border-left:3px solid var(--margin);background:var(--margin-soft);border-radius:0 8px 8px 0;padding:10px 14px;margin:14px 0}
+  .tablebox{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:10px 0}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+
+  /* Тесты */
+  .controls{display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+  .seg button{font:500 13px/1 var(--body);color:var(--muted);background:var(--card);border:none;padding:8px 12px;cursor:pointer}
+  .seg button+button{border-left:1px solid var(--line2)}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+  .ctl-label{font-family:var(--mono);font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-right:6px}
+  .q{border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px;background:var(--card)}
+  .q.is-ok{border-color:var(--ok);background:var(--ok-soft)}
+  .q.is-bad{border-color:var(--bad);background:var(--bad-soft)}
+  .qhead{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .tag{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:5px;border:1px solid var(--line2);color:var(--muted)}
+  .lvl-easy{color:var(--ok);border-color:var(--ok)} .lvl-med{color:var(--warn);border-color:var(--warn)} .lvl-hard{color:var(--bad);border-color:var(--bad)}
+  .qtext{font-weight:600;margin:0 0 10px}
+  .opts{display:grid;gap:7px}
+  .opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;background:var(--paper)}
+  .opt:hover{border-color:var(--line2)}
+  .opt input{margin-top:4px;accent-color:var(--accent)}
+  .opt.o-ok{border-color:var(--ok);background:var(--ok-soft)}
+  .opt.o-bad{border-color:var(--bad);background:var(--bad-soft)}
+  .q input[type=text]{width:100%;font:16px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:10px 12px}
+  .mrow{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;margin:7px 0}
+  .mrow .ml{flex:1 1 160px;font-weight:500}
+  .mrow select{flex:1 1 180px;max-width:100%;font:15px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:8px 10px}
+  .mrow select.s-ok{border-color:var(--ok)} .mrow select.s-bad{border-color:var(--bad)}
+  .explain{margin-top:10px;padding:10px 12px;border:1px dashed var(--line2);border-radius:8px;color:var(--muted);font-size:15px}
+  .btn{font:600 14px/1 var(--body);color:var(--accent-ink);background:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:10px 16px;cursor:pointer}
+  .btn.ghost{color:var(--ink);background:var(--card);border-color:var(--line2)}
+  .btn.small{padding:8px 12px;font-size:13px}
+  .q .btn{margin-top:12px}
+  .testbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+  .score{margin-left:auto;font-family:var(--mono);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .score b{color:var(--accent);font-size:17px}
+  .bar{height:6px;border-radius:99px;background:var(--card2);overflow:hidden;margin:12px 0 4px}
+  .bar>div{height:100%;width:0;background:var(--accent);transition:width .4s}
+  .empty{color:var(--faint);text-align:center;padding:18px;font-family:var(--mono);font-size:13px}
+
+  /* Карточки */
+  .deckmeta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin-bottom:10px}
+  .deckmeta b{color:var(--ok)}
+  .deck{position:relative;height:250px;perspective:1200px}
+  .fc{position:absolute;inset:0;cursor:pointer;border:none;background:none;padding:0;font:inherit;color:inherit;width:100%}
+  .fc .inner{position:relative;width:100%;height:100%;transition:transform .5s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d}
+  .fc.flipped .inner{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:26px;border-radius:10px;border:1px solid var(--line2);background:var(--card)}
+  .face.front{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+  .face.front .t{font-family:var(--display);font-weight:500;font-size:clamp(18px,4.6vw,23px);line-height:1.25}
+  .face.back{transform:rotateY(180deg);border-color:var(--accent);background:var(--card2)}
+  .face.back .t{font-size:16px}
+  .face .hint{position:absolute;bottom:12px;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.06em}
+  .learned-tag{position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:11px;color:var(--ok);border:1px solid var(--ok);border-radius:5px;padding:1px 6px}
+  .deckbar{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .nav{width:42px;height:42px;border-radius:50%;border:1px solid var(--line2);background:var(--card);color:var(--ink);font-size:18px;cursor:pointer}
+  .counter{font-family:var(--mono);font-size:14px;color:var(--muted);min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+
+  /* Определения */
+  .terms{display:grid;gap:8px;margin:10px 0 4px}
+  .term{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--paper)}
+  .term b{color:var(--accent)}
+  details{border:1px solid var(--line);border-radius:8px;margin:8px 0;background:var(--paper)}
+  summary{cursor:pointer;padding:12px 14px;font-weight:600;list-style:none;display:flex;gap:10px}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"+";font-family:var(--mono);color:var(--margin);font-weight:700}
+  details[open] summary::before{content:"−"}
+  details .ans{padding:0 14px 12px 34px;color:var(--muted)}
+
+  .cheat li{margin:7px 0}
+  footer{margin-top:34px;padding-top:14px;border-top:1px solid var(--line);text-align:center;font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+  footer a{color:var(--accent);text-decoration:none}
+
+  @media (prefers-reduced-motion: reduce){.fc .inner,.bar>div{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="top">
+      <span class="eyebrow" id="eyebrow">тренажёр к паре</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <a class="author" id="author" href="#" target="_blank" rel="noopener">автор <b></b></a>
+        <button class="themebtn" id="themeBtn" type="button">Тема</button>
+      </div>
+    </div>
+    <h1 id="pageTitle"></h1>
+    <p class="sub" id="pageSub"></p>
+    <div class="meta" id="pageMeta"></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="konspekt" type="button">Конспект</button>
+    <button class="tab" role="tab" data-tab="tests" type="button">Тесты</button>
+    <button class="tab" role="tab" data-tab="cards" type="button">Карточки</button>
+    <button class="tab" role="tab" data-tab="oral" type="button">Определения</button>
+    <button class="tab" role="tab" data-tab="cheat" type="button">Шпаргалка</button>
+  </nav>
+  <div class="topics" id="topics"></div>
+
+  <main>
+    <div class="panel" id="p-konspekt"></div>
+    <div class="panel" id="p-tests" hidden>
+      <div class="controls">
+        <span><span class="ctl-label">режим</span><span class="seg" id="modeSeg"></span></span>
+        <span><span class="ctl-label">сложность</span><span class="seg" id="levelSeg"></span></span>
+      </div>
+      <div id="qlist"></div>
+      <div class="bar"><div id="bar"></div></div>
+      <div class="testbar">
+        <button class="btn" id="checkAll" type="button">Проверить всё</button>
+        <button class="btn ghost" id="resetAll" type="button">Заново</button>
+        <span class="score" id="score"></span>
+      </div>
+    </div>
+    <div class="panel" id="p-cards" hidden>
+      <div class="deckmeta"><span>Нажми на карточку, чтобы перевернуть.</span><span id="learned"></span></div>
+      <div class="deck" id="deck"></div>
+      <div class="deckbar">
+        <button class="nav" id="prev" type="button" aria-label="Предыдущая">‹</button>
+        <button class="btn ghost small" id="again" type="button">Повторить</button>
+        <span class="counter" id="counter"></span>
+        <button class="btn small" id="know" type="button">Знаю</button>
+        <button class="nav" id="next" type="button" aria-label="Следующая">›</button>
+      </div>
+      <div style="text-align:center;margin-top:10px"><button class="btn ghost small" id="shuffle" type="button">Перемешать</button></div>
+    </div>
+    <div class="panel" id="p-oral" hidden></div>
+    <div class="panel" id="p-cheat" hidden></div>
+  </main>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* ===== ПОДПИСЬ (не менять) ===== */
+const AUTHOR = { nick: "@ainaynandonikai", url: "https://github.com/ainaynandonikai" };
+
+/* ===== ДАННЫЕ - меняется только этот объект ===== */
+const DATA = {
+  title: "Прямая на плоскости",
+  subtitle: "Уравнения прямой в R², угловой коэффициент, середина отрезка, взаимное расположение прямых и разбор задачи про треугольник.",
+  meta: ["Высшая математика", "Лекция 5", "4 темы", "образец задачи из контрольной"],
+  topics: [
+    {
+      id: "k", name: "Основы",
+      konspekt: `
+        <p>Всякая прямая в R² задаётся уравнением первой степени от x и y. И наоборот: любое линейное уравнение - это прямая.</p>
+        <h3>Аналогия: склон горки</h3>
+        <p>Угловой коэффициент <code>k</code> - крутизна горки: сколько метров вверх на каждый метр вперёд. <code>k = 0</code> - ровная площадка, большой <code>k</code> - крутой подъём, отрицательный <code>k</code> - спуск. Число <code>b</code> - высота, на которой горка начинается (пересечение с осью y).</p>
+        <h3>Формулы</h3>
+        <pre>Ax + By + C = 0          общее уравнение прямой (1)
+y = kx + b               с угловым коэффициентом (k = tg φ)
+y − y₀ = k(x − x₀)       пучок прямых через точку M₀(x₀; y₀) (2)
+k = (y₂ − y₁) / (x₂ − x₁)   k по двум точкам M₁, M₂ (2.3)
+O((x₁+x₂)/2 ; (y₁+y₂)/2)    середина отрезка AB</pre>
+        <ul>
+          <li>Горизонтальная прямая: k = 0, уравнение y = y₀.</li>
+          <li>Вертикальная прямая x = x₀ в пучок не входит - у неё нет k.</li>
+          <li><b>Параллельны:</b> k₁ = k₂. <b>Перпендикулярны:</b> k₂ = −1/k₁.</li>
+          <li>Угол между прямыми: tg φ = (k₂ − k₁) / (1 + k₁k₂), если 1 + k₁k₂ ≠ 0.</li>
+        </ul>
+        <div class="callout"><b>Главное:</b> чтобы написать уравнение прямой, нужна точка и k. Точка обычно дана, k ищем по двум точкам или по условию параллельности/перпендикулярности.</div>
+        <h3>Пример 1</h3>
+        <p>Прямая через A(3; 5) и B(−1; 7).</p>
+        <pre>y − 5 = k(x − 3)
+k = (7 − 5) / (−1 − 3) = 2/(−4) = −1/2
+y − 5 = −1/2·(x − 3)  →  y = −x/2 + 13/2</pre>`,
+      terms: [
+        { term: "Общее уравнение прямой", def: "Ax + By + C = 0 - уравнение первой степени относительно x и y; выражает прямую линию." },
+        { term: "Угловой коэффициент", def: "число k = tg φ в уравнении y = kx + b, где φ - угол наклона прямой к оси x." },
+        { term: "Пучок прямых", def: "совокупность прямых, проходящих через данную точку M₀(x₀; y₀); уравнение y − y₀ = k(x − x₀)." }
+      ],
+      cards: [
+        { front: "Общее уравнение прямой", back: "Ax + By + C = 0." },
+        { front: "Прямая с угловым коэффициентом", back: "y = kx + b, где k = tg φ, b - отрезок на оси ординат." },
+        { front: "Пучок прямых через M₀(x₀; y₀)", back: "y − y₀ = k(x − x₀)." },
+        { front: "k по двум точкам", back: "k = (y₂ − y₁) / (x₂ − x₁)." },
+        { front: "Середина отрезка AB", back: "((x₁ + x₂)/2 ; (y₁ + y₂)/2)." },
+        { front: "Горизонтальная прямая", back: "k = 0, уравнение y = y₀." },
+        { front: "Какая прямая не входит в пучок?", back: "Вертикальная x = x₀ - у неё нет углового коэффициента." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Что показывает угловой коэффициент k?",
+          options: [{ t: "Тангенс угла наклона прямой к оси x", correct: true }, { t: "Отрезок на оси y", correct: false }, { t: "Длину отрезка", correct: false }, { t: "Площадь", correct: false }],
+          explain: "k = tg φ; b - это отрезок на оси ординат." },
+        { type: "truefalse", level: "easy", q: "Уравнение вертикальной прямой можно записать как y = kx + b.", answer: false,
+          explain: "Вертикальная прямая x = x₀ не имеет углового коэффициента." },
+        { type: "fill", level: "med", q: "Середина отрезка с концами A(1; 1) и C(3; 7) имеет координаты (2; ___).", answers: ["4"],
+          explain: "(1 + 7)/2 = 4. Середина: (2; 4)." },
+        { type: "fill", level: "med", q: "Угловой коэффициент прямой через A(3; 5) и B(−1; 7) равен ___ (дробью).", answers: ["-1/2", "−1/2"],
+          explain: "k = (7 − 5)/(−1 − 3) = 2/(−4) = −1/2." },
+        { type: "single", level: "med", q: "Какая формула - пучок прямых через точку M₀?",
+          options: [{ t: "y − y₀ = k(x − x₀)", correct: true }, { t: "y = kx + b", correct: false }, { t: "x/a + y/b = 1", correct: false }, { t: "k = (y₂ − y₁)/(x₂ − x₁)", correct: false }],
+          explain: "Это уравнение (2); k₂₃ - формула для углового коэффициента." },
+        { type: "truefalse", level: "hard", q: "У прямой y = −x/2 + 13/2 угловой коэффициент равен 13/2.", answer: false,
+          explain: "k = −1/2, а 13/2 - это b." }
+      ],
+      oral: [
+        { q: "Дайте определение общего уравнения прямой.", a: "Всякая прямая в R² определяется уравнением первой степени относительно x и y: Ax + By + C = 0. Это общее уравнение прямой." },
+        { q: "Что такое пучок прямых?", a: "Совокупность прямых, проходящих через данную точку M₀(x₀; y₀). Уравнение: y − y₀ = k(x − x₀). Вертикальной прямой в пучке нет." },
+        { q: "Как найти угловой коэффициент по двум точкам?", a: "k = (y₂ − y₁)/(x₂ − x₁)." }
+      ],
+      cheat: [
+        "<b>Ax + By + C = 0</b>; <b>y = kx + b</b>, k = tg φ.",
+        "<b>Пучок:</b> y − y₀ = k(x − x₀). <b>k</b> = (y₂ − y₁)/(x₂ − x₁).",
+        "<b>Середина:</b> ((x₁ + x₂)/2 ; (y₁ + y₂)/2).",
+        "<b>∥</b> k₁ = k₂; <b>⊥</b> k₂ = −1/k₁."
+      ]
+    },
+    {
+      id: "uravn", name: "Виды уравнений",
+      konspekt: `
+        <p>Одну и ту же прямую можно записать по-разному. Какой вид брать, зависит от того, что известно.</p>
+        <h3>Аналогия: адрес</h3>
+        <p>Дом можно описать по-разному: «улица, дом», «от метро 200 метров прямо» или «на пересечении двух улиц». Адрес один, способов записи несколько. Так и с прямой.</p>
+        <div class="tablebox"><table>
+          <tr><th>Что известно</th><th>Уравнение</th></tr>
+          <tr><td>Точка M₀(x₀; y₀) и нормаль n = (A; B), n ⊥ l</td><td>A(x − x₀) + B(y − y₀) = 0</td></tr>
+          <tr><td>Общее</td><td>Ax + By + C = 0, нормаль n = (A; B)</td></tr>
+          <tr><td>Точка M₀ и направляющий вектор a = (p; q)</td><td>(x − x₀)/p = (y − y₀)/q - каноническое</td></tr>
+          <tr><td>То же, с параметром t</td><td>x = x₀ + pt, y = y₀ + qt - параметрические</td></tr>
+          <tr><td>Две точки M₁, M₂</td><td>(x − x₁)/(x₂ − x₁) = (y − y₁)/(y₂ − y₁)</td></tr>
+          <tr><td>Отрезки a и b на осях</td><td>x/a + y/b = 1 - в отрезках</td></tr>
+          <tr><td>Точка M₀ и угловой коэффициент k = tg φ</td><td>y − y₀ = k(x − x₀)</td></tr>
+          <tr><td>Угловой коэффициент k и b</td><td>y = kx + b</td></tr>
+        </table></div>
+        <div class="callout"><b>Главное:</b> в общем уравнении Ax + By + C = 0 коэффициенты A и B - координаты вектора нормали n = (A; B), перпендикулярного прямой.</div>
+        <h3>Примеры</h3>
+        <pre>M₀(1; 4), n = (2; −3):
+2(x − 1) − 3(y − 4) = 0  →  2x − 3y + 10 = 0
+
+M₁(1; 2), M₂(3; 6):
+(x − 1)/2 = (y − 2)/4  →  y = 2x
+
+M₀(1; −2), a = (3; 4):
+x = 1 + 3t, y = −2 + 4t  ↔  (x − 1)/3 = (y + 2)/4
+
+x/3 + y/2 = 1  →  2x + 3y − 6 = 0,  k = −2/3</pre>`,
+      terms: [
+        { term: "Вектор нормали", def: "вектор n = (A; B), перпендикулярный прямой Ax + By + C = 0." },
+        { term: "Направляющий вектор", def: "вектор a = (p; q), параллельный прямой; входит в каноническое и параметрические уравнения." },
+        { term: "Уравнение в отрезках", def: "x/a + y/b = 1, где a и b - отрезки, отсекаемые прямой на осях x и y." }
+      ],
+      cards: [
+        { front: "Через точку и нормаль n = (A; B)", back: "A(x − x₀) + B(y − y₀) = 0." },
+        { front: "Каноническое уравнение", back: "(x − x₀)/p = (y − y₀)/q, a = (p; q) - направляющий вектор." },
+        { front: "Параметрические уравнения", back: "x = x₀ + pt, y = y₀ + qt." },
+        { front: "Через две точки", back: "(x − x₁)/(x₂ − x₁) = (y − y₁)/(y₂ − y₁)." },
+        { front: "В отрезках", back: "x/a + y/b = 1." },
+        { front: "Что такое (A; B) в Ax + By + C = 0?", back: "Вектор нормали - перпендикуляр к прямой." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Чем является вектор (A; B) в уравнении Ax + By + C = 0?",
+          options: [{ t: "Вектором нормали", correct: true }, { t: "Направляющим вектором", correct: false }, { t: "Точкой на прямой", correct: false }, { t: "Угловым коэффициентом", correct: false }],
+          explain: "n = (A; B) перпендикулярен прямой." },
+        { type: "match", level: "med", q: "Сопоставьте вид уравнения и его запись:",
+          pairs: [{ left: "В отрезках", right: "x/a + y/b = 1" }, { left: "Каноническое", right: "(x − x₀)/p = (y − y₀)/q" }, { left: "С угловым коэффициентом", right: "y = kx + b" }, { left: "Параметрические", right: "x = x₀ + pt, y = y₀ + qt" }],
+          explain: "Каждый вид подходит под свой набор данных." },
+        { type: "fill", level: "med", q: "M₀(1; 4), n = (2; −3). Свободный член C в уравнении 2x − 3y + C = 0 равен ___", answers: ["10"],
+          explain: "2(x − 1) − 3(y − 4) = 2x − 2 − 3y + 12 = 2x − 3y + 10." },
+        { type: "truefalse", level: "med", q: "Уравнение x/3 + y/2 = 1 задаёт прямую, пересекающую ось x в точке 3.", answer: true,
+          explain: "В уравнении в отрезках a = 3 - отрезок на оси x, b = 2 - на оси y." },
+        { type: "fill", level: "hard", q: "Прямая x/3 + y/2 = 1. Её угловой коэффициент k = ___", answers: ["-2/3", "−2/3"],
+          explain: "x/3 + y/2 = 1 → 2x + 3y − 6 = 0 → y = −2x/3 + 2, k = −2/3." }
+      ],
+      oral: [
+        { q: "Какие виды уравнения прямой на плоскости вы знаете?", a: "Через точку и нормаль, общее, каноническое, параметрические, через две точки, в отрезках, через точку и угловой коэффициент, с угловым коэффициентом y = kx + b." },
+        { q: "Что такое вектор нормали и направляющий вектор?", a: "Вектор нормали n = (A; B) перпендикулярен прямой, направляющий вектор a = (p; q) параллелен ей." }
+      ],
+      cheat: [
+        "<b>Точка + нормаль:</b> A(x − x₀) + B(y − y₀) = 0.",
+        "<b>Каноническое:</b> (x − x₀)/p = (y − y₀)/q; <b>параметрические:</b> x = x₀ + pt, y = y₀ + qt.",
+        "<b>Две точки:</b> (x − x₁)/(x₂ − x₁) = (y − y₁)/(y₂ − y₁). <b>В отрезках:</b> x/a + y/b = 1."
+      ]
+    },
+    {
+      id: "rasp", name: "Расположение прямых",
+      konspekt: `
+        <p>Даны l₁: A₁x + B₁y + C₁ = 0 с нормалью n₁ = (A₁; B₁), k₁ = −A₁/B₁ и l₂: A₂x + B₂y + C₂ = 0 с нормалью n₂ = (A₂; B₂), k₂ = −A₂/B₂.</p>
+        <h3>Аналогия: рельсы</h3>
+        <p>Рельсы параллельны - наклон одинаковый, никогда не встретятся. Перекрёсток - прямые под прямым углом. Если рельс лежит ровно поверх другого - прямые совпали.</p>
+        <div class="tablebox"><table>
+          <tr><th>Условие</th><th>Через A, B, C</th><th>Через k</th></tr>
+          <tr><td>Параллельность l₁ ∥ l₂</td><td>A₁/A₂ = B₁/B₂</td><td>k₁ = k₂</td></tr>
+          <tr><td>Совпадение l₁ = l₂</td><td>A₁/A₂ = B₁/B₂ = C₁/C₂</td><td>-</td></tr>
+          <tr><td>Перпендикулярность l₁ ⊥ l₂</td><td>A₁A₂ + B₁B₂ = 0</td><td>k₁ = −1/k₂</td></tr>
+        </table></div>
+        <h3>Угол между прямыми и расстояние до прямой</h3>
+        <pre>cos φ = |n₁·n₂| / (|n₁|·|n₂|)    или    tg φ = |(k₁ − k₂) / (1 + k₁k₂)|
+
+l: Ax + By + C = 0,  M₀(x₀; y₀):
+d = |A·x₀ + B·y₀ + C| / √(A² + B²)</pre>
+        <div class="callout"><b>Главное:</b> параллельные - нормали параллельны (A, B пропорциональны); перпендикулярные - нормали перпендикулярны (скалярное произведение = 0).</div>
+        <h3>Примеры</h3>
+        <pre>2x − 3y + 5 = 0  и  4x − 6y + 1 = 0:
+2/4 = −3/−6 = 1/2, но 5/1 ≠ 1/2  →  параллельны, не совпадают
+
+k₁ = 1, k₂ = 3:  tg φ = |(3 − 1)/(1 + 3)| = 1/2
+
+M₀(1; 2), l: 3x + 4y − 10 = 0:
+d = |3 + 8 − 10| / √(9 + 16) = 1/5</pre>`,
+      terms: [
+        { term: "Условие параллельности", def: "l₁ ∥ l₂ ⟺ n₁ ∥ n₂ ⟺ A₁/A₂ = B₁/B₂, или k₁ = k₂." },
+        { term: "Условие перпендикулярности", def: "l₁ ⊥ l₂ ⟺ n₁ ⊥ n₂ ⟺ A₁A₂ + B₁B₂ = 0, или k₁ = −1/k₂." },
+        { term: "Условие совпадения", def: "l₁ = l₂ ⟺ A₁/A₂ = B₁/B₂ = C₁/C₂." }
+      ],
+      cards: [
+        { front: "Параллельность прямых", back: "A₁/A₂ = B₁/B₂ или k₁ = k₂." },
+        { front: "Совпадение прямых", back: "A₁/A₂ = B₁/B₂ = C₁/C₂." },
+        { front: "Перпендикулярность", back: "A₁A₂ + B₁B₂ = 0 или k₁ = −1/k₂." },
+        { front: "Угол между прямыми", back: "cos φ = |n₁·n₂| / (|n₁|·|n₂|) или tg φ = |(k₁ − k₂)/(1 + k₁k₂)|." },
+        { front: "Расстояние от точки до прямой", back: "d = |Ax₀ + By₀ + C| / √(A² + B²)." }
+      ],
+      questions: [
+        { type: "single", level: "easy", q: "Какое условие перпендикулярности прямых через угловые коэффициенты?",
+          options: [{ t: "k₁ = −1/k₂", correct: true }, { t: "k₁ = k₂", correct: false }, { t: "k₁ = 1/k₂", correct: false }, { t: "k₁ + k₂ = 0", correct: false }],
+          explain: "Перпендикулярность: k₂ = −1/k₁, то есть k₁k₂ = −1." },
+        { type: "truefalse", level: "easy", q: "Если k₁ = k₂, прямые параллельны (или совпадают).", answer: true,
+          explain: "Одинаковый наклон - параллельность." },
+        { type: "single", level: "med", q: "Прямые 2x − 3y + 5 = 0 и 4x − 6y + 1 = 0:",
+          options: [{ t: "параллельны и не совпадают", correct: true }, { t: "совпадают", correct: false }, { t: "перпендикулярны", correct: false }, { t: "пересекаются под углом 45°", correct: false }],
+          explain: "2/4 = 3/6 = 1/2, но 5/1 ≠ 1/2." },
+        { type: "fill", level: "med", q: "Расстояние от M₀(1; 2) до прямой 3x + 4y − 10 = 0 равно 1/___", answers: ["5"],
+          explain: "d = |3 + 8 − 10| / √(9 + 16) = 1/5." },
+        { type: "fill", level: "hard", q: "k₁ = 1, k₂ = 3. tg φ между прямыми равен 1/___", answers: ["2"],
+          explain: "tg φ = |(3 − 1)/(1 + 3)| = 2/4 = 1/2." },
+        { type: "truefalse", level: "hard", q: "Прямые 2x + y − 1 = 0 и x − 2y + 3 = 0 перпендикулярны.", answer: true,
+          explain: "A₁A₂ + B₁B₂ = 2·1 + 1·(−2) = 0." }
+      ],
+      oral: [
+        { q: "Сформулируйте условия параллельности и перпендикулярности прямых.", a: "Параллельность: A₁/A₂ = B₁/B₂ или k₁ = k₂. Перпендикулярность: A₁A₂ + B₁B₂ = 0 или k₁ = −1/k₂." },
+        { q: "Как найти расстояние от точки до прямой?", a: "d = |Ax₀ + By₀ + C| / √(A² + B²), где Ax + By + C = 0 - прямая, M₀(x₀; y₀) - точка." }
+      ],
+      cheat: [
+        "<b>∥:</b> A₁/A₂ = B₁/B₂ или k₁ = k₂. <b>=:</b> ещё и = C₁/C₂.",
+        "<b>⊥:</b> A₁A₂ + B₁B₂ = 0 или k₁ = −1/k₂.",
+        "<b>tg φ</b> = |(k₁ − k₂)/(1 + k₁k₂)|. <b>d</b> = |Ax₀ + By₀ + C|/√(A² + B²)."
+      ]
+    },
+    {
+      id: "zad", name: "Задача про треугольник",
+      konspekt: `
+        <p>Образец задачи из контрольной. Даны вершины A(1; 1), B(−3; 5), C(3; 7). Найти: а) сторону AB, б) высоту AH, в) медиану BM, г) точку пересечения AH и BM.</p>
+        <h3>Аналогия: путь по карте</h3>
+        <p>Сначала находим «направление» каждой линии (угловой коэффициент), потом «приколачиваем» её к нужной точке пучком. Высота идёт под прямым углом к стороне, медиана - в середину стороны.</p>
+        <h3>Решение</h3>
+        <pre>а) (AB): k = (5 − 1)/(−3 − 1) = −1
+   y − 1 = −1·(x − 1)  →  y = −x + 2
+
+б) высота AH ⊥ BC:
+   k_BC = (7 − 5)/(3 + 3) = 1/3
+   k_AH = −1/k_BC = −3
+   y − 1 = −3(x − 1)  →  y = −3x + 4
+
+в) M - середина AC: M((1+3)/2 ; (1+7)/2) = M(2; 4)
+   k_BM = (4 − 5)/(2 + 3) = −1/5
+   y − 5 = −1/5·(x + 3)  →  y = −x/5 + 22/5
+
+г) {y = −3x + 4
+    {y = −x/5 + 22/5
+   −3x + 4 = −x/5 + 22/5  →  −14x/5 = 2/5  →  x = −1/7
+   y = −3·(−1/7) + 4 = 31/7
+   O(−1/7; 31/7)</pre>
+        <div class="callout"><b>Алгоритм:</b> сторона - k по двум точкам; высота - k = −1/k стороны, через вершину; медиана - середина, потом k по двум точкам; пересечение - система двух уравнений.</div>`,
+      terms: [
+        { term: "Высота треугольника", def: "перпендикуляр из вершины к противоположной стороне; её угловой коэффициент k = −1/k_стороны." },
+        { term: "Медиана треугольника", def: "отрезок из вершины в середину противоположной стороны." }
+      ],
+      cards: [
+        { front: "Как найти уравнение высоты AH?", back: "k_AH = −1/k_BC, дальше пучок через A: y − y_A = k(x − x_A)." },
+        { front: "Как найти уравнение медианы BM?", back: "M - середина AC; k_BM по двум точкам B и M; пучок через B." },
+        { front: "Как найти точку пересечения двух прямых?", back: "Решить систему из их уравнений." },
+        { front: "A(1; 1), B(−3; 5): уравнение AB", back: "y = −x + 2." }
+      ],
+      questions: [
+        { type: "fill", level: "easy", q: "B(−3; 5), C(3; 7). Угловой коэффициент BC равен 1/___", answers: ["3"],
+          explain: "k_BC = (7 − 5)/(3 + 3) = 2/6 = 1/3." },
+        { type: "fill", level: "med", q: "k_BC = 1/3. Угловой коэффициент высоты AH равен ___", answers: ["-3", "−3"],
+          explain: "k_AH = −1/(1/3) = −3." },
+        { type: "single", level: "med", q: "Уравнение высоты AH через A(1; 1) с k = −3:",
+          options: [{ t: "y = −3x + 4", correct: true }, { t: "y = −3x − 2", correct: false }, { t: "y = 3x − 2", correct: false }, { t: "y = −x/3 + 4", correct: false }],
+          explain: "y − 1 = −3(x − 1) → y = −3x + 4." },
+        { type: "fill", level: "med", q: "Середина AC при A(1; 1), C(3; 7): M(2; ___)", answers: ["4"],
+          explain: "(1 + 7)/2 = 4." },
+        { type: "fill", level: "hard", q: "Высота AH и медиана BM пересекаются в точке O(−1/7; y). y = ___ (дробью)", answers: ["31/7"],
+          explain: "y = −3·(−1/7) + 4 = 3/7 + 28/7 = 31/7." }
+      ],
+      oral: [
+        { q: "Как найти уравнение высоты треугольника по координатам вершин?", a: "Найти угловой коэффициент стороны, к которой проведена высота. Угловой коэффициент высоты равен минус единице, делённой на него. Записать пучок через вершину, из которой проведена высота." },
+        { q: "Как найти уравнение медианы?", a: "Найти середину противоположной стороны по формуле середины отрезка, затем угловой коэффициент по двум точкам (вершина и середина) и записать пучок через вершину." }
+      ],
+      cheat: [
+        "<b>Сторона:</b> k = Δy/Δx, пучок через точку.",
+        "<b>Высота:</b> k = −1/k_стороны. <b>Медиана:</b> середина, потом k.",
+        "<b>Пересечение:</b> система из двух уравнений."
+      ]
+    }
+  ]
+};
+
+/* ===== ДВИЖОК (не менять) ===== */
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const make = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const KEY = "trenazher:" + DATA.title;
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const norm = (s) => String(s).toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").replace(/[.,;!]+$/, "").trim();
+  const TYPE = { single: "один ответ", multiple: "несколько", truefalse: "верно / неверно", fill: "вписать", match: "сопоставить" };
+  const LEVEL = { easy: "лёгкий", med: "средний", hard: "сложный" };
+
+  /* Шапка и подпись */
+  document.title = DATA.title;
+  $("#pageTitle").textContent = DATA.title;
+  $("#pageSub").textContent = DATA.subtitle || "";
+  (DATA.meta || []).forEach((m) => $("#pageMeta").appendChild(make("span", "chip", esc(m))));
+  const au = $("#author"); au.href = AUTHOR.url; au.querySelector("b").textContent = AUTHOR.nick;
+  $("#footer").innerHTML = 'Тренажёр собрал <a href="' + esc(AUTHOR.url) + '" target="_blank" rel="noopener">' + esc(AUTHOR.nick) + "</a>";
+
+  /* Тема */
+  const root = document.documentElement;
+  const dark = () => root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const savedTheme = store.get(KEY + ":theme", null);
+  if (savedTheme) root.dataset.theme = savedTheme;
+  const themeLabel = () => { $("#themeBtn").textContent = dark() ? "Светлая тема" : "Тёмная тема"; };
+  $("#themeBtn").onclick = () => { const t = dark() ? "light" : "dark"; root.dataset.theme = t; store.set(KEY + ":theme", t); themeLabel(); };
+  themeLabel();
+
+  /* Фильтр тем */
+  let topic = "all";
+  const sel = () => topic === "all" ? DATA.topics : DATA.topics.filter((t) => t.id === topic);
+  function renderTopics() {
+    const box = $("#topics"); box.innerHTML = "";
+    if (DATA.topics.length < 2) return;
+    [{ id: "all", name: "Все темы" }].concat(DATA.topics).forEach((t) => {
+      const b = make("button", "tchip", esc(t.name)); b.type = "button";
+      b.setAttribute("aria-pressed", String(t.id === topic));
+      b.onclick = () => { topic = t.id; renderAll(); };
+      box.appendChild(b);
+    });
+  }
+
+  /* Конспект */
+  function renderKonspekt() {
+    const p = $("#p-konspekt"); p.innerHTML = "";
+    sel().forEach((t) => {
+      const s = make("section", "sheet");
+      s.appendChild(make("span", "kicker", "тема"));
+      s.appendChild(make("h2", null, esc(t.name)));
+      s.appendChild(make("div", null, t.konspekt || ""));
+      p.appendChild(s);
+    });
+  }
+
+  /* Тесты */
+  let mode = "learn", level = "all", qs = [];
+  function seg(boxId, items, cur, set) {
+    const box = $(boxId); box.innerHTML = "";
+    items.forEach(([v, label]) => {
+      const b = make("button", null, label); b.type = "button";
+      b.setAttribute("aria-pressed", String(v === cur));
+      b.onclick = () => { set(v); renderTests(); };
+      box.appendChild(b);
+    });
+  }
+  function renderTests() {
+    seg("#modeSeg", [["learn", "Учёба"], ["exam", "Экзамен"]], mode, (v) => { mode = v; });
+    seg("#levelSeg", [["all", "Все"], ["easy", "Лёгкие"], ["med", "Средние"], ["hard", "Сложные"]], level, (v) => { level = v; });
+    const list = $("#qlist"); list.innerHTML = "";
+    qs = [];
+    sel().forEach((t) => (t.questions || []).forEach((q) => { if (level === "all" || q.level === level) qs.push(q); }));
+    $("#score").textContent = ""; $("#bar").style.width = "0";
+    if (!qs.length) { list.appendChild(make("div", "empty", "Нет вопросов с таким фильтром")); return; }
+    qs.forEach((q, i) => list.appendChild(renderQ(q, i)));
+  }
+  function renderQ(q, i) {
+    const box = make("div", "q"); box.dataset.i = i;
+    const head = make("div", "qhead");
+    head.appendChild(make("span", "tag", (i + 1) + " · " + TYPE[q.type]));
+    if (q.level) head.appendChild(make("span", "tag lvl-" + q.level, LEVEL[q.level] || q.level));
+    box.appendChild(head);
+    box.appendChild(make("p", "qtext", esc(q.q)));
+    const name = "q" + i;
+    if (q.type === "single" || q.type === "multiple") {
+      const opts = make("div", "opts");
+      shuffle(q.options.map((o, k) => ({ o, k }))).forEach(({ o, k }) => {
+        const l = make("label", "opt"); l.dataset.k = k;
+        const inp = document.createElement("input"); inp.type = q.type === "single" ? "radio" : "checkbox"; inp.name = name; inp.value = k; inp.id = name + "-" + k;
+        l.appendChild(inp); l.appendChild(make("span", null, esc(o.t))); opts.appendChild(l);
+      });
+      box.appendChild(opts);
+    } else if (q.type === "truefalse") {
+      const opts = make("div", "opts");
+      [["true", "Верно"], ["false", "Неверно"]].forEach(([v, t]) => {
+        const l = make("label", "opt"); l.dataset.k = v;
+        const inp = document.createElement("input"); inp.type = "radio"; inp.name = name; inp.value = v; inp.id = name + "-" + v;
+        l.appendChild(inp); l.appendChild(make("span", null, t)); opts.appendChild(l);
+      });
+      box.appendChild(opts);
+    } else if (q.type === "fill") {
+      const inp = document.createElement("input"); inp.type = "text"; inp.id = name + "-fill"; inp.placeholder = "Твой ответ"; inp.autocomplete = "off";
+      inp.onkeydown = (e) => { if (e.key === "Enter") check(box, q); };
+      box.appendChild(inp);
+    } else if (q.type === "match") {
+      const rights = shuffle(q.pairs.map((p) => p.right));
+      q.pairs.forEach((p, k) => {
+        const row = make("div", "mrow");
+        row.appendChild(make("span", "ml", esc(p.left)));
+        const s = document.createElement("select"); s.id = name + "-m" + k;
+        s.appendChild(new Option("выбери…", ""));
+        rights.forEach((r) => s.appendChild(new Option(r, r)));
+        row.appendChild(s); box.appendChild(row);
+      });
+    }
+    const ex = make("div", "explain", "<b>Разбор:</b> " + esc(q.explain || "")); ex.hidden = true; box.appendChild(ex);
+    if (mode === "learn") {
+      const b = make("button", "btn ghost small", "Проверить"); b.type = "button";
+      b.onclick = () => check(box, q); box.appendChild(b);
+    }
+    return box;
+  }
+  function check(box, q) {
+    let ok = false;
+    const labels = [...box.querySelectorAll(".opt")];
+    labels.forEach((l) => l.classList.remove("o-ok", "o-bad"));
+    if (q.type === "single" || q.type === "multiple") {
+      const picked = new Set([...box.querySelectorAll("input:checked")].map((x) => +x.value));
+      const right = new Set(q.options.map((o, k) => o.correct ? k : -1).filter((k) => k >= 0));
+      ok = picked.size === right.size && [...picked].every((k) => right.has(k));
+      labels.forEach((l) => { const k = +l.dataset.k; if (right.has(k)) l.classList.add("o-ok"); else if (picked.has(k)) l.classList.add("o-bad"); });
+    } else if (q.type === "truefalse") {
+      const p = box.querySelector("input:checked");
+      ok = !!p && (p.value === "true") === q.answer;
+      labels.forEach((l) => { const isRight = (l.dataset.k === "true") === q.answer; if (isRight) l.classList.add("o-ok"); else if (p && p.value === l.dataset.k) l.classList.add("o-bad"); });
+    } else if (q.type === "fill") {
+      const v = norm(box.querySelector("input").value);
+      ok = v !== "" && q.answers.some((a) => norm(a) === v);
+    } else if (q.type === "match") {
+      ok = true;
+      box.querySelectorAll("select").forEach((s, k) => { const good = s.value === q.pairs[k].right; s.classList.toggle("s-ok", good); s.classList.toggle("s-bad", !good); if (!good) ok = false; });
+    }
+    box.classList.toggle("is-ok", ok); box.classList.toggle("is-bad", !ok);
+    box.querySelector(".explain").hidden = false;
+    return ok;
+  }
+  $("#checkAll").onclick = () => {
+    if (!qs.length) return;
+    let n = 0;
+    document.querySelectorAll("#qlist .q").forEach((box) => { if (check(box, qs[+box.dataset.i])) n++; });
+    const pct = Math.round(n / qs.length * 100);
+    $("#score").innerHTML = "<b>" + n + " / " + qs.length + "</b> · " + pct + "%";
+    $("#bar").style.width = pct + "%";
+  };
+  $("#resetAll").onclick = () => renderTests();
+
+  /* Карточки */
+  let deck = [], idx = 0;
+  let learned = new Set(store.get(KEY + ":learned", []));
+  function renderCards(reshuffle) {
+    const all = []; sel().forEach((t) => (t.cards || []).forEach((c) => all.push(c)));
+    deck = reshuffle ? shuffle(all) : all; if (idx >= deck.length) idx = 0;
+    drawCard();
+  }
+  function drawCard() {
+    const box = $("#deck"); box.innerHTML = "";
+    const n = deck.filter((c) => learned.has(c.front)).length;
+    $("#learned").innerHTML = deck.length ? "Знаю: <b>" + n + "</b> из " + deck.length : "";
+    if (!deck.length) { box.appendChild(make("div", "empty", "В этой теме нет карточек")); $("#counter").textContent = "0 / 0"; return; }
+    const c = deck[idx];
+    const fc = make("button", "fc"); fc.type = "button"; fc.setAttribute("aria-label", "Перевернуть карточку");
+    const inner = make("div", "inner");
+    const front = make("div", "face front", '<div class="t">' + esc(c.front) + '</div><span class="hint">нажми - ответ</span>');
+    const back = make("div", "face back", '<div class="t">' + esc(c.back) + "</div>");
+    if (learned.has(c.front)) front.appendChild(make("span", "learned-tag", "знаю"));
+    inner.appendChild(front); inner.appendChild(back); fc.appendChild(inner);
+    fc.onclick = () => fc.classList.toggle("flipped");
+    box.appendChild(fc);
+    $("#counter").textContent = (idx + 1) + " / " + deck.length;
+  }
+  const step = (d) => { if (!deck.length) return; idx = (idx + d + deck.length) % deck.length; drawCard(); };
+  const mark = (on) => { if (!deck.length) return; const f = deck[idx].front; on ? learned.add(f) : learned.delete(f); store.set(KEY + ":learned", [...learned]); step(1); };
+  $("#prev").onclick = () => step(-1);
+  $("#next").onclick = () => step(1);
+  $("#know").onclick = () => mark(true);
+  $("#again").onclick = () => mark(false);
+  $("#shuffle").onclick = () => { idx = 0; renderCards(true); };
+
+  /* Определения */
+  function renderOral() {
+    const p = $("#p-oral"); p.innerHTML = "";
+    sel().forEach((t) => {
+      const s = make("section", "sheet");
+      s.appendChild(make("span", "kicker", "тема"));
+      s.appendChild(make("h2", null, esc(t.name)));
+      if ((t.terms || []).length) {
+        const g = make("div", "terms");
+        t.terms.forEach((x) => g.appendChild(make("div", "term", "<b>" + esc(x.term) + "</b> - " + esc(x.def))));
+        s.appendChild(g);
+      }
+      (t.oral || []).forEach((o) => {
+        const d = document.createElement("details");
+        d.appendChild(make("summary", null, esc(o.q)));
+        d.appendChild(make("div", "ans", esc(o.a)));
+        s.appendChild(d);
+      });
+      p.appendChild(s);
+    });
+  }
+
+  /* Шпаргалка */
+  function renderCheat() {
+    const p = $("#p-cheat"); p.innerHTML = "";
+    const s = make("section", "sheet cheat");
+    s.appendChild(make("span", "kicker", "за час до пары"));
+    s.appendChild(make("h2", null, "Шпаргалка"));
+    sel().forEach((t) => {
+      s.appendChild(make("h3", null, esc(t.name)));
+      const ul = make("ul");
+      (t.cheat || []).forEach((c) => ul.appendChild(make("li", null, c)));
+      s.appendChild(ul);
+    });
+    p.appendChild(s);
+  }
+
+  /* Вкладки */
+  const TABS = ["konspekt", "tests", "cards", "oral", "cheat"];
+  function openTab(id) {
+    if (!TABS.includes(id)) id = "konspekt";
+    document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === id)));
+    TABS.forEach((t) => { $("#p-" + t).hidden = t !== id; });
+    store.set(KEY + ":tab", id);
+  }
+  document.querySelectorAll(".tab").forEach((t) => { t.onclick = () => openTab(t.dataset.tab); });
+
+  function renderAll() { renderTopics(); renderKonspekt(); renderTests(); renderCards(false); renderOral(); renderCheat(); }
+  renderAll();
+  openTab((location.hash || "").slice(1) || store.get(KEY + ":tab", "konspekt"));
+})();
+</script>
